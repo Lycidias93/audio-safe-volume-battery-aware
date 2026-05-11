@@ -30,7 +30,7 @@ body:
     id: root
     attributes:
       label: Root stack and version
-      placeholder: Magisk 29.x
+      placeholder: Magisk 29.x / KernelSU / APatch
     validations:
       required: true
   - type: input
@@ -38,10 +38,21 @@ body:
     attributes:
       label: ROM / OEM skin
       placeholder: Stock Pixel / OneUI / LineageOS / HyperOS
+  - type: dropdown
+    id: playback
+    attributes:
+      label: Playback context
+      options:
+        - Speaker
+        - Bluetooth headphones
+        - Bluetooth car receiver
+        - Android Auto
+        - USB audio
+        - Other
   - type: textarea
     id: behavior
     attributes:
       label: Behavior
-      description: Did the warning return after reboot, Bluetooth reconnect, Android Auto use, or media playback?
+      description: Did the warning return after reboot, Bluetooth reconnect, Android Auto use, or media playback? Was volume actually reduced?
     validations:
       required: true
