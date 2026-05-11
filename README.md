@@ -1,14 +1,19 @@
-# Audio Safe Volume Battery Aware
+# Audio Safe Volume Disabler
 
 Battery-aware Magisk module that reapplies Android safe-media-volume / CSD target values after boot without running a resident daemon.
 
+Former project name: **Audio Safe Volume Battery Aware**.
+
+The Magisk module ID intentionally remains `audio-safe-volume-battery-aware` for update compatibility.
+
 ## Status
 
-- Version: `v1.1.1`
-- Verified device: Pixel on Android 16
+- Version: `v1.1.2`
+- Verified baseline: Pixel 10 Pro XL on Android 16 / SDK 36
 - Other Android/OEM ROMs: experimental until verified
 - Runtime mode: Magisk `late_start service`, one-shot + bounded delayed reapply
 - Battery behavior: no loop, no wakelock, no network, idempotent writes only when values drift
+- Magisk in-app updates: supported from `v1.1.1` onward via `updateJson`
 
 ## Safety warning
 
@@ -24,7 +29,7 @@ audio_safe_csd_current_value = 0.0
 audio_safe_csd_dose_records = null
 ```
 
-## What v1.1.0 does
+## What it does
 
 1. Waits for boot completion.
 2. Waits for Android Settings Provider readiness.
@@ -51,7 +56,7 @@ audio_safe_csd_dose_records = null
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → audio-safe-volume-battery-aware-magisk-v1.1.1.zip → Reboot
+Magisk → Modules → Install from storage → ASVD-v1.1.2.zip → Reboot
 ```
 
 ## Verify after reboot
@@ -81,21 +86,11 @@ TARGET_AUDIO_SAFE_VOLUME_STATE="1"
 LOG_MAX_BYTES="65536"
 ```
 
-## Magisk in-app updates
-
-Starting with `v1.1.1`, this module includes `updateJson` in `module.prop`:
-
-```text
-updateJson=https://raw.githubusercontent.com/Lycidias93/audio-safe-volume-battery-aware/main/update.json
-```
-
-Magisk can use this metadata to detect future releases when `update.json` is updated in the repository.
-
 ## Compatibility matrix
 
 | Device | Android | Root stack | Status |
 |---|---:|---|---|
-| Pixel | 16 | Magisk | PASS |
+| Pixel 10 Pro XL | 16 / SDK 36 | Magisk | PASS |
 | Other Pixel models | 16 | Magisk | unverified |
 | Samsung / OneUI | 16 | Magisk | unverified |
 | Xiaomi / HyperOS | 16 | Magisk | unverified |

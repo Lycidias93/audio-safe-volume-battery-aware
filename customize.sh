@@ -1,10 +1,12 @@
 #!/system/bin/sh
 # Magisk installation customizer
 
-ui_print "- Audio Safe Volume Battery Aware v1.1.1"
+ui_print "- Audio Safe Volume Disabler v1.1.2"
+ui_print "- Former name: Audio Safe Volume Battery Aware"
+ui_print "- Module ID remains audio-safe-volume-battery-aware for update compatibility"
 ui_print "- Mode: late_start one-shot, no resident daemon"
 ui_print "- Battery aware: idempotent writes, bounded delayed reapply"
-ui_print "- Added: updateJson support, fixed local SHA256 release publishing, retained verify/log/state hardening"
+ui_print "- Changed: visible project/module name only; runtime behavior unchanged from v1.1.1"
 
 legacy="/data/adb/service.d/99-audio-safe-volume.sh"
 backup_dir="/data/adb/audio-safe-volume-battery-aware-backup"
@@ -22,6 +24,7 @@ set_perm "$MODPATH/verify.sh" 0 0 0755
 set_perm "$MODPATH/action.sh" 0 0 0755
 set_perm "$MODPATH/uninstall.sh" 0 0 0755
 set_perm "$MODPATH/module.prop" 0 0 0644
+set_perm "$MODPATH/update.json" 0 0 0644
 [ -f "$MODPATH/README.md" ] && set_perm "$MODPATH/README.md" 0 0 0644
 [ -f "$MODPATH/CHANGELOG.md" ] && set_perm "$MODPATH/CHANGELOG.md" 0 0 0644
 [ -f "$MODPATH/LICENSE" ] && set_perm "$MODPATH/LICENSE" 0 0 0644

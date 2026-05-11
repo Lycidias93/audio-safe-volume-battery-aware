@@ -1,13 +1,14 @@
-# Audio Safe Volume Battery Aware v1.1.1
+# Audio Safe Volume Disabler v1.1.2
 
-Hotfix release focused on Magisk update support and release hygiene.
+Branding hotfix release.
 
 ## Changes
 
-- Added `updateJson` to `module.prop`.
-- Added `update.json` for Magisk in-app update metadata.
-- Fixed release publishing workflow so SHA256 files use local relative filenames, not sandbox paths.
-- Kept runtime behavior unchanged from v1.1.0.
+- Renamed visible project/module name from **Audio Safe Volume Battery Aware** to **Audio Safe Volume Disabler**.
+- Kept Magisk module ID unchanged: `audio-safe-volume-battery-aware`.
+- Kept GitHub repo slug and `updateJson` path unchanged for update compatibility.
+- Updated release asset naming to the short public asset `ASVD-v1.1.2.zip`.
+- Runtime behavior unchanged from v1.1.1.
 
 ## Runtime mode
 
@@ -24,7 +25,7 @@ Hotfix release focused on Magisk update support and release hygiene.
 - Pixel 10 Pro XL
 - Android 16 / SDK 36
 - Magisk
-- v1.1.0 runtime verify: `RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS`
+- v1.1.1 runtime verify: `RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS`
 
 ## Safety warning
 

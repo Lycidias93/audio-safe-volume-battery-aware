@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.1.2
+
+- Rename visible project/module name to **Audio Safe Volume Disabler**.
+- Keep Magisk module ID `audio-safe-volume-battery-aware` unchanged for update compatibility.
+- Keep GitHub repo slug and updateJson path unchanged.
+- Update release asset naming to the shorter `ASVD-v1.1.2.zip`.
+- Keep runtime behavior unchanged from v1.1.1.
+
 ## v1.1.1
 
 - Add `updateJson` to `module.prop` for Magisk in-app update metadata.
