@@ -2,12 +2,27 @@
 # Audio Safe Volume Disabler Magisk service
 # Runs once per boot in late_start service. No persistent daemon, no network, no wakelock.
 
+umask 022
 MODDIR="${0%/*}"
-MODID="audio-safe-volume-battery-aware"
-VERSION="v1.2.0"
+MODULE_PROP="$MODDIR/module.prop"
 LOG="$MODDIR/service.log"
 STATE_DIR="$MODDIR/state"
 CONF="/data/adb/audio-safe-volume-battery-aware.conf"
+
+read_module_prop() {
+  key="$1"
+  [ -r "$MODULE_PROP" ] || return 0
+  /system/bin/grep -m 1 "^$key=" "$MODULE_PROP" 2>/dev/null | /system/bin/sed "s/^$key=//" 2>/dev/null || true
+}
+
+MODID="$(read_module_prop id)"
+MODNAME="$(read_module_prop name)"
+VERSION="$(read_module_prop version)"
+VERSION_CODE="$(read_module_prop versionCode)"
+[ -n "$MODID" ] || MODID="audio-safe-volume-battery-aware"
+[ -n "$MODNAME" ] || MODNAME="Audio Safe Volume Disabler"
+[ -n "$VERSION" ] || VERSION="unknown"
+[ -n "$VERSION_CODE" ] || VERSION_CODE="unknown"
 
 # Defaults can be overridden in /data/adb/audio-safe-volume-battery-aware.conf
 TARGET_SAFE_MEDIA_VOLUME_ENABLED="0"
@@ -33,6 +48,14 @@ mkdir_safe() {
   /system/bin/mkdir -p "$1" 2>/dev/null || true
 }
 
+chmod_support_files() {
+  [ -f "$LOG" ] && /system/bin/chmod 0644 "$LOG" 2>/dev/null || true
+  if [ -d "$STATE_DIR" ]; then
+    /system/bin/chmod 0755 "$STATE_DIR" 2>/dev/null || true
+    /system/bin/chmod 0644 "$STATE_DIR"/*.env 2>/dev/null || true
+  fi
+}
+
 now() {
   /system/bin/date '+%Y-%m-%dT%H:%M:%S%z' 2>/dev/null || /system/bin/date 2>/dev/null || echo unknown-time
 }
@@ -40,6 +63,7 @@ now() {
 log() {
   mkdir_safe "$MODDIR"
   echo "$(now) $*" >> "$LOG" 2>/dev/null || true
+  chmod_support_files
 }
 
 normalize_number() {
@@ -77,6 +101,10 @@ snapshot_values() {
   {
     echo "timestamp=$(now)"
     echo "phase=$phase"
+    echo "module_id=$MODID"
+    echo "module_name=$MODNAME"
+    echo "module_version=$VERSION"
+    echo "module_versionCode=$VERSION_CODE"
     echo "android_sdk=$(prop_get ro.build.version.sdk)"
     echo "android_release=$(prop_get ro.build.version.release)"
     echo "device=$(prop_get ro.product.device)"
@@ -89,6 +117,8 @@ snapshot_values() {
     echo "audio_safe_csd_current_value=$(settings_get audio_safe_csd_current_value)"
     echo "audio_safe_csd_dose_records=$(settings_get audio_safe_csd_dose_records)"
   } > "$file" 2>/dev/null || true
+  /system/bin/chmod 0644 "$file" 2>/dev/null || true
+  chmod_support_files
 }
 
 settings_put_if_needed() {
@@ -236,7 +266,7 @@ warn_environment() {
 main() {
   mkdir_safe "$STATE_DIR"
   rotate_log
-  log "START module=$MODID version=$VERSION mode=one-shot battery-aware"
+  log "START module=$MODID name=$MODNAME version=$VERSION versionCode=$VERSION_CODE mode=one-shot battery-aware"
   warn_environment
 
   if wait_for_boot_completed; then
@@ -288,7 +318,8 @@ main() {
     fi
   fi
 
-  log "DONE module=$MODID version=$VERSION"
+  log "DONE module=$MODID name=$MODNAME version=$VERSION versionCode=$VERSION_CODE"
+  chmod_support_files
 }
 
 main

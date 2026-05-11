@@ -6,8 +6,10 @@ MODE="full"
 case "${1:-}" in
   --compact) MODE="compact" ;;
   --xda) MODE="xda" ;;
+  --xda-short) MODE="xda-short" ;;
+  --json) MODE="json" ;;
   --help|-h)
-    echo "Usage: verify.sh [--compact|--xda]"
+    echo "Usage: verify.sh [--compact|--xda|--xda-short|--json]"
     exit 0
     ;;
 esac
@@ -45,24 +47,39 @@ read_prop_file() {
   /system/bin/grep -m 1 "^$key=" "$file" 2>/dev/null | /system/bin/sed "s/^$key=//" 2>/dev/null || true
 }
 
+find_magisk_bin() {
+  for p in     "$(command -v magisk 2>/dev/null || true)"     /sbin/magisk     /debug_ramdisk/magisk     /data/adb/magisk/magisk     /cache/magisk/magisk
+  do
+    [ -n "$p" ] || continue
+    [ -x "$p" ] || continue
+    echo "$p"
+    return 0
+  done
+  return 1
+}
+
 magisk_version() {
-  if command -v magisk >/dev/null 2>&1; then
-    magisk -v 2>/dev/null || echo unknown
-  elif [ -x /sbin/magisk ]; then
-    /sbin/magisk -v 2>/dev/null || echo unknown
-  else
-    echo unknown
+  if [ -n "${MAGISK_VER:-}" ]; then
+    echo "$MAGISK_VER"
+    return 0
   fi
+  bin="$(find_magisk_bin 2>/dev/null || true)"
+  [ -n "$bin" ] && "$bin" -v 2>/dev/null && return 0
+  echo unknown
 }
 
 magisk_version_code() {
-  if command -v magisk >/dev/null 2>&1; then
-    magisk -V 2>/dev/null || echo unknown
-  elif [ -x /sbin/magisk ]; then
-    /sbin/magisk -V 2>/dev/null || echo unknown
-  else
-    echo unknown
+  if [ -n "${MAGISK_VER_CODE:-}" ]; then
+    echo "$MAGISK_VER_CODE"
+    return 0
   fi
+  bin="$(find_magisk_bin 2>/dev/null || true)"
+  [ -n "$bin" ] && "$bin" -V 2>/dev/null && return 0
+  echo unknown
+}
+
+json_escape() {
+  echo "$1" | /system/bin/sed 's/\/\\/g; s/"/\"/g'
 }
 
 check_file_quiet() {
@@ -127,6 +144,7 @@ battery_status="$(/system/bin/cmd battery get status 2>/dev/null || echo unknown
 low_power="$(settings_get low_power)"
 magisk_v="$(magisk_version)"
 magisk_vc="$(magisk_version_code)"
+magisk_bin="$(find_magisk_bin 2>/dev/null || echo unknown)"
 config_file="$(config_status)"
 service_log="$(log_status)"
 
@@ -139,6 +157,7 @@ v_records="$(settings_get audio_safe_csd_dose_records)"
 ok=0
 check_file_quiet "$module_prop" || ok=1
 check_file_quiet "$service_sh" || ok=1
+check_file_quiet "$MODDIR/verify.sh" || ok=1
 [ -x "$service_sh" ] || ok=1
 values_status || ok=1
 
@@ -156,6 +175,49 @@ if [ "$MODE" = "compact" ]; then
   fi
   echo "RESULT: AUDIO_SAFE_VOLUME_VERIFY_FAIL"
   exit 1
+fi
+
+if [ "$MODE" = "xda-short" ]; then
+  echo "[CODE]"
+  echo "Module: $module_name $version ($version_code)"
+  echo "Device: $manufacturer $model ($device)"
+  echo "Android: $android_release / SDK $android_sdk"
+  echo "Magisk: $magisk_v ($magisk_vc)"
+  echo "Config: $config_file"
+  if values_status; then echo "Values: PASS"; else echo "Values: FAIL"; fi
+  echo "Service log: $service_log"
+  if [ "$ok" -eq 0 ]; then
+    echo "RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS"
+  else
+    echo "RESULT: AUDIO_SAFE_VOLUME_VERIFY_FAIL"
+  fi
+  echo "[/CODE]"
+  [ "$ok" -eq 0 ] && exit 0 || exit 1
+fi
+
+if [ "$MODE" = "json" ]; then
+  if values_status; then values_result="PASS"; else values_result="FAIL"; fi
+  if [ "$ok" -eq 0 ]; then result="AUDIO_SAFE_VOLUME_VERIFY_PASS"; else result="AUDIO_SAFE_VOLUME_VERIFY_FAIL"; fi
+  cat <<EOF
+{
+  "module_id": "$(json_escape "$module_id")",
+  "module_name": "$(json_escape "$module_name")",
+  "version": "$(json_escape "$version")",
+  "versionCode": "$(json_escape "$version_code")",
+  "manufacturer": "$(json_escape "$manufacturer")",
+  "device": "$(json_escape "$device")",
+  "model": "$(json_escape "$model")",
+  "android_release": "$(json_escape "$android_release")",
+  "android_sdk": "$(json_escape "$android_sdk")",
+  "magisk_version": "$(json_escape "$magisk_v")",
+  "magisk_versionCode": "$(json_escape "$magisk_vc")",
+  "config_file": "$(json_escape "$config_file")",
+  "values": "$(json_escape "$values_result")",
+  "service_log": "$(json_escape "$service_log")",
+  "result": "$(json_escape "$result")"
+}
+EOF
+  [ "$ok" -eq 0 ] && exit 0 || exit 1
 fi
 
 if [ "$MODE" = "xda" ]; then
@@ -210,6 +272,8 @@ printf 'magisk_version = %s
 ' "$magisk_v"
 printf 'magisk_versionCode = %s
 ' "$magisk_vc"
+printf 'magisk_bin = %s
+' "$magisk_bin"
 printf 'boot_completed = %s
 ' "$boot_completed"
 printf 'battery_level = %s
@@ -298,8 +362,12 @@ fi
 echo
 printf 'compact_command = %s
 ' "tsu /system/bin/sh $MODDIR/verify.sh --compact"
+printf 'xda_short_command = %s
+' "tsu /system/bin/sh $MODDIR/verify.sh --xda-short"
 printf 'xda_report_command = %s
 ' "tsu /system/bin/sh $MODDIR/verify.sh --xda"
+printf 'json_command = %s
+' "tsu /system/bin/sh $MODDIR/verify.sh --json"
 
 echo
 if [ "$ok" -eq 0 ]; then

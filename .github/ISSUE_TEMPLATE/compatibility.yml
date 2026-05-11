@@ -9,7 +9,7 @@ body:
       label: Verify output
       description: Run the command below and paste the full output.
       value: |
-        tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
+        tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda-short
     validations:
       required: true
   - type: input

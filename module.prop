@@ -1,7 +1,7 @@
 id=audio-safe-volume-battery-aware
 name=Audio Safe Volume Disabler
-version=v1.2.1
-versionCode=121
+version=v1.2.2
+versionCode=122
 author=Lycidias93
-description=Battery-aware one-shot Magisk boot service for Android audio safe-volume/CSD settings. Pixel Android 16 tested; diagnostics improved in v1.2.0; privacy metadata cleanup in v1.2.1.
+description=Battery-aware one-shot Magisk boot service for Android audio safe-volume/CSD settings. Pixel Android 16 tested; diagnostics polished in v1.2.2.
 updateJson=https://raw.githubusercontent.com/Lycidias93/audio-safe-volume-battery-aware/main/update.json

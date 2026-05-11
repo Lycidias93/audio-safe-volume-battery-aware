@@ -6,7 +6,7 @@ The internal Magisk module ID intentionally remains `audio-safe-volume-battery-a
 
 ## Status
 
-- Version: `v1.2.0`
+- Version: `v1.2.2`
 - Verified baseline: Pixel 10 Pro XL on Android 16 / SDK 36
 - Other Android/OEM ROMs: experimental until verified
 - Runtime mode: Magisk `late_start service`, one-shot + bounded delayed reapply
@@ -44,7 +44,7 @@ audio_safe_csd_dose_records = null
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → ASVD-v1.2.1.zip → Reboot
+Magisk → Modules → Install from storage → ASVD-v1.2.2.zip → Reboot
 ```
 
 ## Verify after reboot
@@ -61,10 +61,22 @@ Compact verify:
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compact
 ```
 
+XDA short:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda-short
+```
+
 XDA report block:
 
 ```sh
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
+```
+
+JSON:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --json
 ```
 
 Expected final line:
