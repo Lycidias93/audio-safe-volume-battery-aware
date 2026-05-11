@@ -9,7 +9,8 @@ case "${1:-}" in
   --xda-short) MODE="xda-short" ;;
   --json) MODE="json" ;;
   --help|-h)
-    echo "Usage: verify.sh [--compact|--xda|--xda-short|--json]"
+    echo "Usage: verify.sh [--xda|--compact|--xda-short|--json]"
+    echo "Recommended: full verify (no args) or XDA full report (--xda)."
     exit 0
     ;;
 esac
@@ -18,6 +19,7 @@ MODDIR="${0%/*}"
 LOG="$MODDIR/service.log"
 STATE_DIR="$MODDIR/state"
 CONF="/data/adb/audio-safe-volume-battery-aware.conf"
+XDA_THREAD="https://xdaforums.com/t/module-audio-safe-volume-disabler-v1-1-2-pixel-android-16-verified.4788291/"
 TARGET_SAFE_MEDIA_VOLUME_ENABLED="0"
 TARGET_AUDIO_SAFE_VOLUME_STATE="1"
 TARGET_AUDIO_SAFE_CSD_NEXT_WARNING="999999.0"
@@ -224,6 +226,7 @@ if [ "$MODE" = "xda" ]; then
   echo "[CODE]"
   echo "Module: $module_name $version ($version_code)"
   echo "Module ID: $module_id"
+  echo "Thread: $XDA_THREAD"
   echo "Device: $manufacturer $model ($device)"
   echo "Android: $android_release / SDK $android_sdk"
   echo "Magisk: $magisk_v ($magisk_vc)"
@@ -360,14 +363,11 @@ else
 fi
 
 echo
-printf 'compact_command = %s
-' "tsu /system/bin/sh $MODDIR/verify.sh --compact"
-printf 'xda_short_command = %s
-' "tsu /system/bin/sh $MODDIR/verify.sh --xda-short"
+echo "== recommended commands =="
+printf 'full_verify_command = %s
+' "tsu /system/bin/sh $MODDIR/verify.sh"
 printf 'xda_report_command = %s
 ' "tsu /system/bin/sh $MODDIR/verify.sh --xda"
-printf 'json_command = %s
-' "tsu /system/bin/sh $MODDIR/verify.sh --json"
 
 echo
 if [ "$ok" -eq 0 ]; then

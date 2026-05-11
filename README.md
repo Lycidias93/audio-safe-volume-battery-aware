@@ -6,7 +6,7 @@ The internal Magisk module ID intentionally remains `audio-safe-volume-battery-a
 
 ## Status
 
-- Version: `v1.2.2`
+- Version: `v1.2.3`
 - Verified baseline: Pixel 10 Pro XL on Android 16 / SDK 36
 - Other Android/OEM ROMs: experimental until verified
 - Runtime mode: Magisk `late_start service`, one-shot + bounded delayed reapply
@@ -44,39 +44,21 @@ audio_safe_csd_dose_records = null
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → ASVD-v1.2.2.zip → Reboot
+Magisk → Modules → Install from storage → ASVD-v1.2.3.zip → Reboot
 ```
 
 ## Verify after reboot
 
-Full verify:
+Recommended full verify:
 
 ```sh
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh
 ```
 
-Compact verify:
-
-```sh
-tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compact
-```
-
-XDA short:
-
-```sh
-tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda-short
-```
-
-XDA report block:
+Recommended XDA/GitHub report:
 
 ```sh
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
-```
-
-JSON:
-
-```sh
-tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --json
 ```
 
 Expected final line:
@@ -84,6 +66,12 @@ Expected final line:
 ```text
 RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS
 ```
+
+Advanced/debug modes still exist but are not the primary support path: `--compact`, `--xda-short`, `--json`.
+
+## XDA thread
+
+https://xdaforums.com/t/module-audio-safe-volume-disabler-v1-1-2-pixel-android-16-verified.4788291/
 
 ## Optional config
 

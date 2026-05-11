@@ -2,16 +2,18 @@
 
 Please include a verify report when opening an issue or replying on XDA.
 
-## Preferred short report
-
-```sh
-tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda-short
-```
-
-## Full report
+## Recommended report
 
 ```sh
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
+```
+
+## Also useful
+
+For local troubleshooting, run the full verify:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh
 ```
 
 ## Include
@@ -21,8 +23,8 @@ tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh -
 - Root stack and version
 - ROM / OEM skin
 - Module version
-- Verify output
-- Whether the warning returned after reboot, Bluetooth reconnect, or media playback
+- Full verify/report output
+- Whether the warning returned after reboot, Bluetooth reconnect, Android Auto use, or media playback
 
 ## Do not include
 

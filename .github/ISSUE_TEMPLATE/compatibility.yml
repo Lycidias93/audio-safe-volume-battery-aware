@@ -6,10 +6,10 @@ body:
   - type: textarea
     id: verify
     attributes:
-      label: Verify output
-      description: Run the command below and paste the full output.
+      label: Verify report
+      description: Run this command and paste the full output.
       value: |
-        tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda-short
+        tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
     validations:
       required: true
   - type: input
@@ -42,6 +42,6 @@ body:
     id: behavior
     attributes:
       label: Behavior
-      description: Did the warning return after reboot, Bluetooth reconnect, or media playback?
+      description: Did the warning return after reboot, Bluetooth reconnect, Android Auto use, or media playback?
     validations:
       required: true

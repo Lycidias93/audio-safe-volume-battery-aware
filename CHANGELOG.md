@@ -1,6 +1,14 @@
 # Changelog
 
-## v1.2.2
+## v1.2.3
+
+- Simplify public support flow: full verify and XDA full report are now the recommended commands.
+- Keep compact, XDA-short, and JSON verify modes as advanced/debug modes.
+- Add XDA thread link to full XDA report output.
+- Simplify README, SUPPORT.md, and GitHub issue template around the XDA full report.
+- Runtime audio behavior unchanged from v1.2.2.
+
+## v1.2.3
 
 - Read module name, ID, version and versionCode dynamically from `module.prop` in `service.sh`.
 - Fix service log version drift after metadata-only releases.
