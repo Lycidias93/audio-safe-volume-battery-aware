@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.1
+
+- Privacy metadata cleanup: public project metadata now uses `Lycidias93` only.
+- Removed old public releases/tags before publishing this release.
+- Kept internal Magisk module ID unchanged for update compatibility.
+- Runtime behavior unchanged from v1.2.0.
+
 ## v1.2.0
 
 - Add `verify.sh --compact` for short support checks.

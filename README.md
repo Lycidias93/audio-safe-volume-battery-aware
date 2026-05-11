@@ -44,7 +44,7 @@ audio_safe_csd_dose_records = null
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → ASVD-v1.2.0.zip → Reboot
+Magisk → Modules → Install from storage → ASVD-v1.2.1.zip → Reboot
 ```
 
 ## Verify after reboot
