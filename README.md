@@ -4,7 +4,7 @@ Battery-aware Magisk module that reapplies Android safe-media-volume / CSD targe
 
 ## Status
 
-- Version: `v1.1.0`
+- Version: `v1.1.1`
 - Verified device: Pixel on Android 16
 - Other Android/OEM ROMs: experimental until verified
 - Runtime mode: Magisk `late_start service`, one-shot + bounded delayed reapply
@@ -51,7 +51,7 @@ audio_safe_csd_dose_records = null
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → audio-safe-volume-battery-aware-magisk-v1.1.0.zip → Reboot
+Magisk → Modules → Install from storage → audio-safe-volume-battery-aware-magisk-v1.1.1.zip → Reboot
 ```
 
 ## Verify after reboot
@@ -80,6 +80,16 @@ LOW_BATTERY_THRESHOLD="15"
 TARGET_AUDIO_SAFE_VOLUME_STATE="1"
 LOG_MAX_BYTES="65536"
 ```
+
+## Magisk in-app updates
+
+Starting with `v1.1.1`, this module includes `updateJson` in `module.prop`:
+
+```text
+updateJson=https://raw.githubusercontent.com/Lycidias93/audio-safe-volume-battery-aware/main/update.json
+```
+
+Magisk can use this metadata to detect future releases when `update.json` is updated in the repository.
 
 ## Compatibility matrix
 

@@ -1,10 +1,10 @@
 #!/system/bin/sh
 # Magisk installation customizer
 
-ui_print "- Audio Safe Volume Battery Aware v1.1.0"
+ui_print "- Audio Safe Volume Battery Aware v1.1.1"
 ui_print "- Mode: late_start one-shot, no resident daemon"
 ui_print "- Battery aware: idempotent writes, bounded delayed reapply"
-ui_print "- Added: verify.sh, log rotation, state snapshots, final drift reapply"
+ui_print "- Added: updateJson support, fixed local SHA256 release publishing, retained verify/log/state hardening"
 
 legacy="/data/adb/service.d/99-audio-safe-volume.sh"
 backup_dir="/data/adb/audio-safe-volume-battery-aware-backup"

@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.1
+
+- Add `updateJson` to `module.prop` for Magisk in-app update metadata.
+- Add repository `update.json` pointing to the v1.1.1 GitHub release asset.
+- Fix release publishing hygiene so SHA256 files use local relative filenames instead of sandbox paths.
+- Keep runtime behavior unchanged from v1.1.0: one-shot late_start service, bounded delayed reapply, no resident daemon.
+
 ## v1.1.0
 
 - Add built-in `verify.sh` with `RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS/FAIL` marker.
