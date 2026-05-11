@@ -1,19 +1,17 @@
 # Audio Safe Volume Disabler
 
-Battery-aware Magisk module that reapplies Android safe-media-volume / CSD target values after boot without running a resident daemon.
+Small Magisk module that disables/delays Android safe-volume / Sound Dose warning behavior after boot.
 
-Former project name: **Audio Safe Volume Battery Aware**.
-
-The Magisk module ID intentionally remains `audio-safe-volume-battery-aware` for update compatibility.
+The internal Magisk module ID intentionally remains `audio-safe-volume-battery-aware` for update compatibility.
 
 ## Status
 
-- Version: `v1.1.2`
+- Version: `v1.2.0`
 - Verified baseline: Pixel 10 Pro XL on Android 16 / SDK 36
 - Other Android/OEM ROMs: experimental until verified
 - Runtime mode: Magisk `late_start service`, one-shot + bounded delayed reapply
 - Battery behavior: no loop, no wakelock, no network, idempotent writes only when values drift
-- Magisk in-app updates: supported from `v1.1.1` onward via `updateJson`
+- Magisk in-app updates: supported via `updateJson`
 
 ## Safety warning
 
@@ -41,30 +39,32 @@ audio_safe_csd_dose_records = null
 8. Performs one final delayed reapply only if drift is detected.
 9. Writes structured logs and exits.
 
-## Files
-
-```text
-/data/adb/modules/audio-safe-volume-battery-aware/service.sh
-/data/adb/modules/audio-safe-volume-battery-aware/verify.sh
-/data/adb/modules/audio-safe-volume-battery-aware/action.sh
-/data/adb/modules/audio-safe-volume-battery-aware/service.log
-/data/adb/modules/audio-safe-volume-battery-aware/state/*.env
-```
-
 ## Install
 
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → ASVD-v1.1.2.zip → Reboot
+Magisk → Modules → Install from storage → ASVD-v1.2.0.zip → Reboot
 ```
 
 ## Verify after reboot
 
-From Termux:
+Full verify:
 
 ```sh
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh
+```
+
+Compact verify:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compact
+```
+
+XDA report block:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
 ```
 
 Expected final line:
@@ -88,30 +88,11 @@ LOG_MAX_BYTES="65536"
 
 ## Compatibility matrix
 
-| Device | Android | Root stack | Status |
-|---|---:|---|---|
-| Pixel 10 Pro XL | 16 / SDK 36 | Magisk | PASS |
-| Other Pixel models | 16 | Magisk | unverified |
-| Samsung / OneUI | 16 | Magisk | unverified |
-| Xiaomi / HyperOS | 16 | Magisk | unverified |
-| LineageOS / custom ROMs | 14+ | Magisk | unverified |
-| KernelSU / APatch | 14+ | KernelSU/APatch | unverified |
+See [`COMPATIBILITY.md`](COMPATIBILITY.md).
 
-## Issue report template
+## Support
 
-Please include:
-
-```sh
-tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh
-```
-
-And paste:
-
-- device model
-- Android version
-- root stack and version
-- full verify output
-- whether the warning returned after reboot, Bluetooth reconnect, or media playback
+See [`SUPPORT.md`](SUPPORT.md).
 
 ## Rollback
 

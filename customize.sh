@@ -1,12 +1,12 @@
 #!/system/bin/sh
 # Magisk installation customizer
 
-ui_print "- Audio Safe Volume Disabler v1.1.2"
-ui_print "- Former name: Audio Safe Volume Battery Aware"
+ui_print "- Audio Safe Volume Disabler v1.2.0"
 ui_print "- Module ID remains audio-safe-volume-battery-aware for update compatibility"
 ui_print "- Mode: late_start one-shot, no resident daemon"
 ui_print "- Battery aware: idempotent writes, bounded delayed reapply"
-ui_print "- Changed: visible project/module name only; runtime behavior unchanged from v1.1.1"
+ui_print "- Changed: diagnostics/support only; runtime behavior unchanged from v1.1.2"
+ui_print "- Added: verify --compact, verify --xda, Magisk/config status"
 
 legacy="/data/adb/service.d/99-audio-safe-volume.sh"
 backup_dir="/data/adb/audio-safe-volume-battery-aware-backup"
@@ -30,4 +30,6 @@ set_perm "$MODPATH/update.json" 0 0 0644
 [ -f "$MODPATH/LICENSE" ] && set_perm "$MODPATH/LICENSE" 0 0 0644
 
 ui_print "- Installed. Reboot required for Magisk service run."
-ui_print "- After reboot: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh"
+ui_print "- Verify: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh"
+ui_print "- Compact: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compact"
+ui_print "- XDA report: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda"

@@ -4,7 +4,7 @@
 
 MODDIR="${0%/*}"
 MODID="audio-safe-volume-battery-aware"
-VERSION="v1.1.2"
+VERSION="v1.2.0"
 LOG="$MODDIR/service.log"
 STATE_DIR="$MODDIR/state"
 CONF="/data/adb/audio-safe-volume-battery-aware.conf"

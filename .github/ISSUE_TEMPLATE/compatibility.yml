@@ -1,0 +1,47 @@
+name: Compatibility / bug report
+description: Report whether Audio Safe Volume Disabler works on your device
+title: "[Report] <device> <Android version>"
+labels: [compatibility]
+body:
+  - type: textarea
+    id: verify
+    attributes:
+      label: Verify output
+      description: Run the command below and paste the full output.
+      value: |
+        tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device model
+      placeholder: Pixel 10 Pro XL
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version / SDK
+      placeholder: Android 16 / SDK 36
+    validations:
+      required: true
+  - type: input
+    id: root
+    attributes:
+      label: Root stack and version
+      placeholder: Magisk 29.x
+    validations:
+      required: true
+  - type: input
+    id: rom
+    attributes:
+      label: ROM / OEM skin
+      placeholder: Stock Pixel / OneUI / LineageOS / HyperOS
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Behavior
+      description: Did the warning return after reboot, Bluetooth reconnect, or media playback?
+    validations:
+      required: true

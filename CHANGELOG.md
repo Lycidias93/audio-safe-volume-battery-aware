@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.2.0
+
+- Add `verify.sh --compact` for short support checks.
+- Add `verify.sh --xda` for copy-ready XDA report blocks.
+- Add Magisk version and versionCode to verify output when available.
+- Add config status and effective config values to verify output.
+- Make Magisk Action button run compact read-only verify output.
+- Add `SUPPORT.md`, `COMPATIBILITY.md`, and GitHub issue template.
+- Keep runtime behavior unchanged from v1.1.2.
+
 ## v1.1.2
 
 - Rename visible project/module name to **Audio Safe Volume Disabler**.
@@ -11,7 +21,7 @@
 ## v1.1.1
 
 - Add `updateJson` to `module.prop` for Magisk in-app update metadata.
-- Add repository `update.json` pointing to the v1.1.1 GitHub release asset.
+- Add repository `update.json` pointing to the GitHub release asset.
 - Fix release publishing hygiene so SHA256 files use local relative filenames instead of sandbox paths.
 - Keep runtime behavior unchanged from v1.1.0: one-shot late_start service, bounded delayed reapply, no resident daemon.
 
@@ -23,14 +33,7 @@
 - Add state snapshots under `state/before.env`, `state/after_primary.env`, `state/after_delayed.env`, and `state/after_final.env` when needed.
 - Use `MODDIR=${0%/*}` consistently.
 - Add environment logging for Android SDK, release, manufacturer, device, and model.
-- Add structured failure markers:
-  - `FAIL settings_provider_timeout`
-  - `FAIL settings_put_denied`
-  - `FAIL settings_delete_denied`
-  - `FAIL unexpected_state_after_apply`
-  - `FAIL unexpected_state_after_final`
-  - `WARN unsupported_android_sdk`
-  - `WARN drift_after_delayed`
+- Add structured failure markers.
 - Add optional final reapply only if drift is detected after delayed verification.
 - Keep one-shot battery-aware behavior; no permanent daemon, no wakelock, no network.
 - Expand README with safety warning, compatibility matrix, verification, rollback, and issue template.
