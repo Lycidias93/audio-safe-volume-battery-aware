@@ -46,6 +46,28 @@ The tested H222 Skoda BT2MP3 receiver is classified as headphones by Pixel Andro
 
 ASVD does not currently modify Bluetooth device classification. Do not edit `/data/misc/bluedroid/bt_config.conf` manually.
 
+## Rejected helper path
+
+Do not use or request a GMS-disable/offline-ui helper path in public ASVD.
+
+Observed during private H222 helper testing:
+
+- soft UI-unlock mode failed
+- hard UI-unlock mode failed
+- offline-ui + Bluetooth reload failed
+- Google Play Services disable/offline-ui testing caused Google Play Billing account-context side effects
+- Wavelet Pro license check used the wrong Google account
+- Play Store data reset alone did not fix it
+- removing all non-primary Google accounts restored Wavelet Pro in that test
+
+Decision:
+
+- no Google Play Services manipulation as default/helper behavior
+- no offline-ui helper shipped
+- no direct Bluetooth config patching
+- no boot automation for Bluetooth type changes
+- future BT helper research must use Bluetooth metadata/API path only
+
 ## Do not include
 
 - Private keys
@@ -53,7 +75,12 @@ ASVD does not currently modify Bluetooth device classification. Do not edit `/da
 - Full unrelated logs
 - Personal account data
 - Unsanitized Bluetooth MAC addresses
+- Google account identifiers
 
 ## Known scope
 
 Pixel Android 16 with Magisk is verified. Other devices are experimental until verified.
+
+## Rejected helper paths
+
+The GMS-disable/offline-ui Bluetooth type helper path is rejected and not shipped in public ASVD builds because it caused Google Play Billing / account-context side effects during testing.

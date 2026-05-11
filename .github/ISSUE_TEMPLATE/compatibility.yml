@@ -1,17 +1,15 @@
-name: Compatibility / bug report
-description: Report whether Audio Safe Volume Disabler works on your device
-title: "[Report] <device> <Android version>"
-labels: [compatibility]
+name: Compatibility report
+about: Report ASVD behavior on another device/ROM
+labels: compatibility
 body:
-  - type: textarea
-    id: verify
+  - type: markdown
     attributes:
-      label: Verify report
-      description: Run this command and paste the full output.
       value: |
-        tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
-    validations:
-      required: true
+        Please paste the full XDA/GitHub report output:
+        `tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda`
+
+        Do not include unsanitized Bluetooth MAC addresses, account identifiers, tokens, or private keys.
+
   - type: input
     id: device
     attributes:
@@ -19,6 +17,7 @@ body:
       placeholder: Pixel 10 Pro XL
     validations:
       required: true
+
   - type: input
     id: android
     attributes:
@@ -26,18 +25,23 @@ body:
       placeholder: Android 16 / SDK 36
     validations:
       required: true
+
   - type: input
     id: root
     attributes:
       label: Root stack and version
-      placeholder: Magisk 29.x / KernelSU / APatch
+      placeholder: Magisk e8a58776-alpha / 30700
     validations:
       required: true
-  - type: input
-    id: rom
+
+  - type: textarea
+    id: report
     attributes:
-      label: ROM / OEM skin
-      placeholder: Stock Pixel / OneUI / LineageOS / HyperOS
+      label: verify.sh --xda output
+      render: text
+    validations:
+      required: true
+
   - type: dropdown
     id: playback
     attributes:
@@ -47,12 +51,22 @@ body:
         - Bluetooth headphones
         - Bluetooth car receiver
         - Android Auto
-        - USB audio
-        - Other
-  - type: textarea
-    id: behavior
-    attributes:
-      label: Behavior
-      description: Did the warning return after reboot, Bluetooth reconnect, Android Auto use, or media playback? Was volume actually reduced?
+        - Other / mixed
     validations:
       required: true
+
+  - type: textarea
+    id: warning
+    attributes:
+      label: Warning behavior
+      description: Did the warning return? Did volume actually decrease?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: rejected-path
+    attributes:
+      label: Safety acknowledgement
+      options:
+        - label: I understand that ASVD does not ship a GMS-disable/offline-ui helper and does not patch Bluetooth config files.
+          required: true

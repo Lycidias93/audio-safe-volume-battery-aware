@@ -1,16 +1,22 @@
-Audio Safe Volume Disabler v1.2.4
+# Audio Safe Volume Disabler v1.2.5
 
-Active-session helper release.
+Docs/support safety release.
 
 ## Changes
 
-- Added `apply-now.sh` for manual immediate reapply + verify.
-- Added `active-guard-once.sh` for bounded active Bluetooth playback sessions where Android repopulates Sound Dose values.
-- Magisk Action button now runs `apply-now.sh`.
-- Documented H222 / Skoda BT2MP3 receiver behavior: Android classifies it as headphones, transient warning can appear, and CSD values can repopulate during active playback.
-- Documented verified recovery: bounded active guard restored target values and final verify passed.
-- Clarified that ASVD does not currently modify Bluetooth device classification.
-- Boot runtime behavior unchanged from v1.2.3.
+- Added docs/support warning about Google Play Billing account-context side effects observed during experimental GMS-disable/offline-ui helper tests.
+- Explicitly marked the GMS-disable/offline-ui Bluetooth type helper path as rejected and not shipped.
+- Documented failed H222 UI-unlock attempts:
+  - soft mode failed
+  - hard mode failed
+  - offline-ui + Bluetooth reload failed
+- Clarified future BT Device Type Helper direction:
+  - optional Bluetooth metadata/API research only
+  - no GMS-disable/offline-ui mode
+  - no direct `bt_config.conf` patching
+  - no boot automation for Bluetooth type changes
+- Fixed Magisk install text quoting in `customize.sh`.
+- Runtime audio behavior unchanged from v1.2.4.
 
 ## Runtime mode
 
@@ -35,8 +41,6 @@ Bounded active guard:
 ```sh
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/active-guard-once.sh
 ```
-
-Default active guard: 12 passes, 15 seconds apart.
 
 ## Verify after install
 

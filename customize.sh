@@ -1,14 +1,15 @@
 #!/system/bin/sh
 # Magisk installation customizer
 
-ui_print "- Audio Safe Volume Disabler v1.2.4"
+ui_print "- Audio Safe Volume Disabler v1.2.5"
 ui_print "- Module ID remains audio-safe-volume-battery-aware for update compatibility"
 ui_print "- Mode: late_start one-shot, no resident daemon"
 ui_print "- Battery aware: idempotent writes, bounded delayed reapply"
-ui_print "- Changed: active-session helpers added; boot runtime unchanged"
-ui_print "- Recommended support flow: full verify and XDA full report
-ui_print "- New manual helpers: apply-now.sh and active-guard-once.sh"
-ui_print "- No default daemon, no network, no wakelock""
+ui_print "- Changed: docs/support safety cleanup; boot runtime unchanged"
+ui_print "- Rejected helper path: no GMS-disable/offline-ui mode is shipped"
+ui_print "- Future BT helper direction: metadata/API research only"
+ui_print "- Manual helpers remain: apply-now.sh and active-guard-once.sh"
+ui_print "- No default daemon, no network, no wakelock"
 
 legacy="/data/adb/service.d/99-audio-safe-volume.sh"
 backup_dir="/data/adb/audio-safe-volume-battery-aware-backup"
@@ -32,9 +33,14 @@ set_perm "$MODPATH/update.json" 0 0 0644
 [ -f "$MODPATH/README.md" ] && set_perm "$MODPATH/README.md" 0 0 0644
 [ -f "$MODPATH/CHANGELOG.md" ] && set_perm "$MODPATH/CHANGELOG.md" 0 0 0644
 [ -f "$MODPATH/LICENSE" ] && set_perm "$MODPATH/LICENSE" 0 0 0644
+[ -f "$MODPATH/SUPPORT.md" ] && set_perm "$MODPATH/SUPPORT.md" 0 0 0644
+[ -f "$MODPATH/COMPATIBILITY.md" ] && set_perm "$MODPATH/COMPATIBILITY.md" 0 0 0644
 
 ui_print "- Installed. Reboot required for Magisk service run."
 ui_print "- Full verify: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh"
 ui_print "- XDA report: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda"
 ui_print "- Apply now: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/apply-now.sh"
 ui_print "- Active guard: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/active-guard-once.sh"
+
+ui_print "- Recommended support flow: full verify + XDA/GitHub report."
+ui_print "- GMS-disable/offline-ui Bluetooth helper path is rejected and not shipped."

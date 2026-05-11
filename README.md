@@ -6,7 +6,7 @@ The internal Magisk module ID intentionally remains `audio-safe-volume-battery-a
 
 ## Status
 
-- Version: `v1.2.4`
+- Version: `v1.2.5`
 - Verified baseline: Pixel 10 Pro XL on Android 16 / SDK 36
 - Additional verified scenario: active Bluetooth music playback on H222 car receiver after bounded active guard
 - Other Android/OEM ROMs: experimental until verified
@@ -75,14 +75,37 @@ Observed behavior:
 - CSD values can repopulate during active playback
 - `active-guard-once.sh` restored the target state and final verify passed
 
-ASVD does not currently modify Bluetooth device classification. A future optional BT Device Type Helper may be developed separately.
+ASVD does not currently modify Bluetooth device classification.
+
+## Rejected experimental helper path
+
+Do **not** use Google Play Services manipulation as a public/helper path for changing Bluetooth audio device type.
+
+Private testing on Pixel Android 16 showed:
+
+- H222 UI-unlock `soft` mode failed
+- H222 UI-unlock `hard` mode failed
+- H222 `offline-ui` + Bluetooth reload failed
+- GMS-disable/offline-ui testing caused Google Play Billing account-context side effects
+- Wavelet Pro license check used the wrong Google account
+- Play Store data reset alone did not fix that account-context issue
+- removing all non-primary Google accounts restored Wavelet Pro in that test
+
+Decision:
+
+- no GMS-disable/offline-ui helper is shipped in public ASVD
+- no Play Services manipulation as a default or helper path
+- no direct `/data/misc/bluedroid/bt_config.conf` patching
+- no boot automation for Bluetooth type changes
+
+Future BT Device Type Helper research, if any, must use a Bluetooth metadata/API path only and remain optional/manual.
 
 ## Install
 
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → ASVD-v1.2.4.zip → Reboot
+Magisk → Modules → Install from storage → ASVD-v1.2.5.zip → Reboot
 ```
 
 ## Verify after reboot

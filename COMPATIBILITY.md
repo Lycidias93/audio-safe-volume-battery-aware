@@ -8,8 +8,9 @@ RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS
 
 | Device | Android | ROM / OEM skin | Root stack | ASVD version | Result | Reporter / notes |
 |---|---:|---|---|---|---|---|
-| Pixel 10 Pro XL | 16 / SDK 36 | Stock Pixel | Magisk | v1.2.3 | PASS | Baseline boot verify |
-| Pixel 10 Pro XL + H222 Skoda BT2MP3 receiver | 16 / SDK 36 | Stock Pixel | Magisk | v1.2.4 | PASS after active guard | H222 classified as headphones; CSD drift observed during active playback; `active-guard-once.sh` restored PASS |
+| Pixel 10 Pro XL | 16 / SDK 36 | Stock Pixel | Magisk | v1.2.3+ | PASS | Baseline boot verify |
+| Pixel 10 Pro XL + H222 Skoda BT2MP3 receiver | 16 / SDK 36 | Stock Pixel | Magisk | v1.2.4+ | PASS after active guard | H222 classified as headphones; CSD drift observed during active playback; `active-guard-once.sh` restored PASS |
+| Pixel 10 Pro XL + H222 UI-unlock helper tests | 16 / SDK 36 | Stock Pixel | Magisk | research only | rejected | soft/hard/offline-ui failed; GMS-disable path caused Google Play Billing account-context side effects and is not shipped |
 | Other Pixel models | 16 | Stock Pixel | Magisk | unverified | unverified | Needs report |
 | Samsung | 16 | OneUI | Magisk | unverified | unverified | OEM Sound Dose behavior may differ |
 | Xiaomi | 16 | HyperOS | Magisk | unverified | unverified | OEM Sound Dose behavior may differ |

@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.2.5
+
+- Add docs/support warning about Google Play Billing account-context side effects observed during experimental GMS-disable/offline-ui helper tests.
+- Explicitly mark the GMS-disable/offline-ui Bluetooth type helper path as rejected and not shipped.
+- Document failed H222 UI-unlock attempts: soft mode, hard mode, and offline-ui + Bluetooth reload.
+- Clarify future BT Device Type Helper direction: optional Bluetooth metadata/API research only.
+- Reaffirm no direct `/data/misc/bluedroid/bt_config.conf` patching and no boot automation for BT type changes.
+- Fix Magisk install text quoting in `customize.sh`.
+- Keep ASVD runtime audio behavior unchanged from v1.2.4.
+
+
 ## v1.2.4
 
 - Add `apply-now.sh` for manual immediate reapply + verify.
