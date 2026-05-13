@@ -81,6 +81,19 @@ Decision:
 
 Pixel Android 16 with Magisk is verified. Other devices are experimental until verified.
 
-## Rejected helper paths
+## Companion status
 
-The GMS-disable/offline-ui Bluetooth type helper path is rejected and not shipped in public ASVD builds because it caused Google Play Billing / account-context side effects during testing.
+ASVD v1.2.6 reports optional ASVD BT Type Helper status in full verify and XDA/GitHub reports.
+
+Please include the companion block when reporting H222 / Bluetooth receiver issues:
+
+```text
+Companion:
+  ASVD BT Type Helper: present/absent
+  Package: org.asvd.bttypehelper
+  State file: present/absent
+  Requested type: ...
+  Last result: ...
+```
+
+The companion is optional and remains separate from ASVD core runtime.

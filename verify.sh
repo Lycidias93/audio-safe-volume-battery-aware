@@ -20,6 +20,9 @@ LOG="$MODDIR/service.log"
 STATE_DIR="$MODDIR/state"
 CONF="/data/adb/audio-safe-volume-battery-aware.conf"
 XDA_THREAD="https://xdaforums.com/t/module-audio-safe-volume-disabler-v1-1-2-pixel-android-16-verified.4788291/"
+ASVD_SHARED_DIR="/data/adb/asvd"
+BT_HELPER_PKG="org.asvd.bttypehelper"
+BT_HELPER_STATE="$ASVD_SHARED_DIR/bt-helper.env"
 TARGET_SAFE_MEDIA_VOLUME_ENABLED="0"
 TARGET_AUDIO_SAFE_VOLUME_STATE="1"
 TARGET_AUDIO_SAFE_CSD_NEXT_WARNING="999999.0"
@@ -108,6 +111,39 @@ config_status() {
   fi
 }
 
+package_status() {
+  pkg="$1"
+  if /system/bin/pm path "$pkg" >/dev/null 2>&1; then
+    echo present
+  else
+    echo absent
+  fi
+}
+
+package_version_name() {
+  pkg="$1"
+  /system/bin/dumpsys package "$pkg" 2>/dev/null     | /system/bin/grep -m 1 'versionName=' 2>/dev/null     | /system/bin/sed 's/.*versionName=//' 2>/dev/null || true
+}
+
+package_version_code() {
+  pkg="$1"
+  /system/bin/dumpsys package "$pkg" 2>/dev/null     | /system/bin/grep -m 1 'versionCode=' 2>/dev/null     | /system/bin/sed 's/.*versionCode=//; s/[[:space:]].*//' 2>/dev/null || true
+}
+
+state_file_status() {
+  if [ -r "$BT_HELPER_STATE" ]; then
+    echo present
+  else
+    echo absent
+  fi
+}
+
+state_value() {
+  key="$1"
+  [ -r "$BT_HELPER_STATE" ] || return 0
+  /system/bin/grep -m 1 "^$key=" "$BT_HELPER_STATE" 2>/dev/null     | /system/bin/sed "s/^$key=//" 2>/dev/null || true
+}
+
 log_status() {
   if [ -r "$LOG" ] && /system/bin/grep -q "DONE module=audio-safe-volume-battery-aware" "$LOG" 2>/dev/null; then
     echo PASS
@@ -149,6 +185,24 @@ magisk_vc="$(magisk_version_code)"
 magisk_bin="$(find_magisk_bin 2>/dev/null || echo unknown)"
 config_file="$(config_status)"
 service_log="$(log_status)"
+bt_helper_status="$(package_status "$BT_HELPER_PKG")"
+bt_helper_version="$(package_version_name "$BT_HELPER_PKG")"
+bt_helper_version_code="$(package_version_code "$BT_HELPER_PKG")"
+[ -n "$bt_helper_version" ] || bt_helper_version="unknown"
+[ -n "$bt_helper_version_code" ] || bt_helper_version_code="unknown"
+bt_helper_state_file="$(state_file_status)"
+bt_helper_state_package="$(state_value package)"
+bt_helper_state_version="$(state_value helper_version)"
+bt_helper_target_name="$(state_value target_name)"
+bt_helper_requested_type="$(state_value requested_type)"
+bt_helper_last_result="$(state_value last_result)"
+bt_helper_last_run="$(state_value last_run)"
+[ -n "$bt_helper_state_package" ] || bt_helper_state_package="unknown"
+[ -n "$bt_helper_state_version" ] || bt_helper_state_version="unknown"
+[ -n "$bt_helper_target_name" ] || bt_helper_target_name="unknown"
+[ -n "$bt_helper_requested_type" ] || bt_helper_requested_type="unknown"
+[ -n "$bt_helper_last_result" ] || bt_helper_last_result="unknown"
+[ -n "$bt_helper_last_run" ] || bt_helper_last_run="unknown"
 
 v_next="$(settings_get audio_safe_csd_next_warning)"
 v_enabled="$(settings_get safe_media_volume_enabled)"
@@ -168,6 +222,7 @@ if [ "$MODE" = "compact" ]; then
   echo "device=$model"
   echo "android=$android_release sdk=$android_sdk"
   echo "magisk=$magisk_v ($magisk_vc)"
+  echo "bt_helper=$bt_helper_status version=$bt_helper_version state=$bt_helper_state_file"
   echo "config=$config_file"
   if values_status; then echo "values=PASS"; else echo "values=FAIL"; fi
   echo "service_log=$service_log"
@@ -185,6 +240,7 @@ if [ "$MODE" = "xda-short" ]; then
   echo "Device: $manufacturer $model ($device)"
   echo "Android: $android_release / SDK $android_sdk"
   echo "Magisk: $magisk_v ($magisk_vc)"
+  echo "Companion: ASVD BT Type Helper $bt_helper_status version=$bt_helper_version state=$bt_helper_state_file"
   echo "Config: $config_file"
   if values_status; then echo "Values: PASS"; else echo "Values: FAIL"; fi
   echo "Service log: $service_log"
@@ -216,6 +272,15 @@ if [ "$MODE" = "json" ]; then
   "config_file": "$(json_escape "$config_file")",
   "values": "$(json_escape "$values_result")",
   "service_log": "$(json_escape "$service_log")",
+  "bt_helper_status": "$(json_escape "$bt_helper_status")",
+  "bt_helper_package": "$(json_escape "$BT_HELPER_PKG")",
+  "bt_helper_version": "$(json_escape "$bt_helper_version")",
+  "bt_helper_versionCode": "$(json_escape "$bt_helper_version_code")",
+  "bt_helper_state_file": "$(json_escape "$bt_helper_state_file")",
+  "bt_helper_target_name": "$(json_escape "$bt_helper_target_name")",
+  "bt_helper_requested_type": "$(json_escape "$bt_helper_requested_type")",
+  "bt_helper_last_result": "$(json_escape "$bt_helper_last_result")",
+  "bt_helper_last_run": "$(json_escape "$bt_helper_last_run")",
   "result": "$(json_escape "$result")"
 }
 EOF
@@ -233,6 +298,15 @@ if [ "$MODE" = "xda" ]; then
   echo "Boot completed: $boot_completed"
   echo "Battery: level=$battery_level status=$battery_status low_power=$low_power"
   echo "Config: $config_file ($CONF)"
+  echo "Companion:"
+  echo "  ASVD BT Type Helper: $bt_helper_status"
+  echo "  Package: $BT_HELPER_PKG"
+  echo "  Package version: $bt_helper_version ($bt_helper_version_code)"
+  echo "  State file: $bt_helper_state_file ($BT_HELPER_STATE)"
+  echo "  State target: $bt_helper_target_name"
+  echo "  Requested type: $bt_helper_requested_type"
+  echo "  Last result: $bt_helper_last_result"
+  echo "  Last run: $bt_helper_last_run"
   echo "Values:"
   echo "  audio_safe_csd_next_warning = $v_next"
   echo "  safe_media_volume_enabled   = $v_enabled"
@@ -285,6 +359,33 @@ printf 'battery_status = %s
 ' "$battery_status"
 printf 'low_power = %s
 ' "$low_power"
+
+echo
+echo "== companion =="
+printf 'bt_helper_status = %s
+' "$bt_helper_status"
+printf 'bt_helper_package = %s
+' "$BT_HELPER_PKG"
+printf 'bt_helper_version = %s
+' "$bt_helper_version"
+printf 'bt_helper_versionCode = %s
+' "$bt_helper_version_code"
+printf 'bt_helper_state_file = %s
+' "$bt_helper_state_file"
+printf 'bt_helper_state_path = %s
+' "$BT_HELPER_STATE"
+printf 'bt_helper_state_package = %s
+' "$bt_helper_state_package"
+printf 'bt_helper_state_version = %s
+' "$bt_helper_state_version"
+printf 'bt_helper_target_name = %s
+' "$bt_helper_target_name"
+printf 'bt_helper_requested_type = %s
+' "$bt_helper_requested_type"
+printf 'bt_helper_last_result = %s
+' "$bt_helper_last_result"
+printf 'bt_helper_last_run = %s
+' "$bt_helper_last_run"
 
 echo
 check_file module.prop "$module_prop" || ok=1

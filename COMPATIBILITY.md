@@ -22,3 +22,7 @@ Recommended report command:
 ```sh
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
 ```
+
+## BT Type Helper companion
+
+ASVD v1.2.6 can report whether the optional ASVD BT Type Helper companion is installed. Compatibility reports should mention companion status when testing Bluetooth receivers or Carkit metadata behavior.

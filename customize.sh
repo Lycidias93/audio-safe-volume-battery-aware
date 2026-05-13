@@ -1,13 +1,15 @@
 #!/system/bin/sh
 # Magisk installation customizer
 
-ui_print "- Audio Safe Volume Disabler v1.2.5"
+ui_print "- Audio Safe Volume Disabler v1.2.6"
 ui_print "- Module ID remains audio-safe-volume-battery-aware for update compatibility"
 ui_print "- Mode: late_start one-shot, no resident daemon"
 ui_print "- Battery aware: idempotent writes, bounded delayed reapply"
-ui_print "- Changed: docs/support safety cleanup; boot runtime unchanged"
+ui_print "- Changed: optional ASVD BT Type Helper companion detection; boot runtime unchanged"
 ui_print "- Rejected helper path: no GMS-disable/offline-ui mode is shipped"
 ui_print "- Future BT helper direction: metadata/API research only"
+ui_print "- Companion detection: org.asvd.bttypehelper status shown in verify/XDA reports"
+ui_print "- Shared optional companion state path: /data/adb/asvd/bt-helper.env"
 ui_print "- Manual helpers remain: apply-now.sh and active-guard-once.sh"
 ui_print "- No default daemon, no network, no wakelock"
 
@@ -41,6 +43,3 @@ ui_print "- Full verify: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-
 ui_print "- XDA report: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda"
 ui_print "- Apply now: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/apply-now.sh"
 ui_print "- Active guard: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/active-guard-once.sh"
-
-ui_print "- Recommended support flow: full verify + XDA/GitHub report."
-ui_print "- GMS-disable/offline-ui Bluetooth helper path is rejected and not shipped."

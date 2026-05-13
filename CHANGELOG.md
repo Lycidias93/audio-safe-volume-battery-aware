@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.6
+
+- Add optional ASVD BT Type Helper companion detection in full verify, XDA report, compact mode and JSON mode.
+- Report companion package `org.asvd.bttypehelper`, package version, optional shared state file and last helper result when available.
+- Document shared optional state path `/data/adb/asvd/bt-helper.env` for loose ASVD ↔ BT Helper integration.
+- Keep ASVD and BT Helper separated: no hard dependency, no boot automation, no GMS-disable/offline-ui mode and no direct `bt_config.conf` patching.
+- Keep ASVD runtime audio behavior unchanged from v1.2.5.
+
 ## v1.2.5
 
 - Add docs/support warning about Google Play Billing account-context side effects observed during experimental GMS-disable/offline-ui helper tests.

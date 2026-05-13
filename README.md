@@ -6,7 +6,7 @@ The internal Magisk module ID intentionally remains `audio-safe-volume-battery-a
 
 ## Status
 
-- Version: `v1.2.5`
+- Version: `v1.2.6`
 - Verified baseline: Pixel 10 Pro XL on Android 16 / SDK 36
 - Additional verified scenario: active Bluetooth music playback on H222 car receiver after bounded active guard
 - Other Android/OEM ROMs: experimental until verified
@@ -105,7 +105,7 @@ Future BT Device Type Helper research, if any, must use a Bluetooth metadata/API
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → ASVD-v1.2.5.zip → Reboot
+Magisk → Modules → Install from storage → ASVD-v1.2.6.zip → Reboot
 ```
 
 ## Verify after reboot
@@ -176,3 +176,23 @@ tsu /system/bin/sh -c 'settings delete global audio_safe_csd_next_warning; setti
 ## Release notes
 
 See `CHANGELOG.md`.
+
+## Optional companion detection
+
+ASVD v1.2.6 can detect the optional ASVD BT Type Helper companion package:
+
+```text
+org.asvd.bttypehelper
+```
+
+The companion is optional. ASVD does not depend on it and does not control it at boot. When present, ASVD verify and `--xda` reports show package/version and optional shared state from:
+
+```text
+/data/adb/asvd/bt-helper.env
+```
+
+Intended split:
+
+- ASVD: safe-volume / Sound Dose handling
+- BT Type Helper: optional Bluetooth device type / Carkit metadata research
+- Shared reporting only; no GMS-disable/offline-ui mode, no direct `bt_config.conf` patching, no boot automation for Bluetooth type changes
