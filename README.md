@@ -1,18 +1,74 @@
 # Audio Safe Volume Disabler
 
-Small Magisk module that disables/delays Android safe-volume / Sound Dose warning behavior after boot.
+<!-- ASVD_INTRO_START -->
+## What it is and why it exists
+
+Audio Safe Volume Disabler / ASVD is a **Magisk module** that disables or delays Android safe-volume / Sound Dose warning behavior after boot.
+
+It started from a manual Android settings workaround and turns it into a bounded boot-time module: wait for boot, apply the target state, verify it, optionally reapply once if Android rewrites values, then exit.
+
+ASVD is intentionally small and conservative:
+
+- no resident daemon
+- no polling loop by default
+- no wakelock
+- no network access
+- no Play Services manipulation
+- no Bluetooth config patching
 
 The internal Magisk module ID intentionally remains `audio-safe-volume-battery-aware` for update compatibility.
+<!-- ASVD_INTRO_END -->
 
-## Status
+## Current status
 
-- Version: `v1.2.7`
-- Verified baseline: Pixel 10 Pro XL on Android 16 / SDK 36
-- Additional verified scenario: active Bluetooth music playback on H222 car receiver after bounded active guard
-- Other Android/OEM ROMs: experimental until verified
-- Runtime mode: Magisk `late_start service`, one-shot + bounded delayed reapply
-- Battery behavior: no default loop, no wakelock, no network
-- Magisk in-app updates: supported via `updateJson`
+| Area | Status |
+|---|---|
+| Current stable release | `v1.2.7` |
+| Version / versionCode | `v1.2.7` / `127` |
+| Runtime model | Magisk `late_start service` |
+| Boot behavior | one-shot apply + bounded delayed reapply |
+| Battery behavior | no default loop, no wakelock, no network |
+| Verified phone | Pixel 10 Pro XL / Android 16 / SDK 36 |
+| Verified baseline | boot verify PASS |
+| Verified Bluetooth scenario | H222 / Skoda BT2MP3 receiver after active guard |
+| Optional companion | ASVD BT Type Helper `v0.6.1` / `61` |
+| Companion shared state | `/data/adb/asvd/bt-helper.env` |
+| Online updates | Enabled via Magisk `updateJson` |
+| Other phones / OEM ROMs | Unknown, tester feedback needed |
+
+## Download
+
+All releases:
+
+<https://github.com/Lycidias93/audio-safe-volume-battery-aware/releases>
+
+Latest release:
+
+<https://github.com/Lycidias93/audio-safe-volume-battery-aware/releases/latest>
+
+Download the Magisk ZIP from the newest stable release:
+
+```text
+ASVD-vX.X.X.zip
+```
+
+Do **not** install this as a normal APK. Flash the ZIP in Magisk.
+
+## Install
+
+1. Flash the ZIP in Magisk.
+2. Reboot.
+3. Run full verify:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh
+```
+
+Expected final line:
+
+```text
+RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS
+```
 
 ## Safety warning
 
@@ -75,7 +131,7 @@ Observed behavior:
 - CSD values can repopulate during active playback
 - `active-guard-once.sh` restored the target state and final verify passed
 
-ASVD does not currently modify Bluetooth device classification.
+ASVD itself does not modify Bluetooth device classification. The separate optional ASVD BT Type Helper can change Bluetooth metadata key `17` with explicit user action and can report sanitized companion state back to ASVD.
 
 ## Rejected experimental helper path
 
@@ -212,25 +268,63 @@ tsu /system/bin/sh -c 'settings delete global audio_safe_csd_next_warning; setti
 
 See `CHANGELOG.md`.
 
-## Optional companion detection
+## Optional BT Type Helper companion
 
-ASVD v1.2.6 can detect the optional ASVD BT Type Helper companion package:
+ASVD can detect the optional ASVD BT Type Helper companion package:
 
 ```text
 org.asvd.bttypehelper
 ```
 
-The companion is optional. ASVD does not depend on it and does not control it at boot. When present, ASVD verify and `--xda` reports show package/version and optional shared state from:
+Current verified companion baseline:
+
+| Area | Status |
+|---|---|
+| Companion module | ASVD BT Type Helper |
+| Current stable release | `v0.6.1` |
+| Version / versionCode | `0.6.1` / `61` |
+| Package | `org.asvd.bttypehelper` |
+| Reference target | `H222` Bluetooth receiver |
+| Reference result | `metadata_17=Carkit` |
+| Shared state | `/data/adb/asvd/bt-helper.env` |
+
+The split is intentional:
+
+- ASVD handles Android safe-volume / Sound Dose settings.
+- ASVD BT Type Helper handles optional Bluetooth device type metadata.
+- ASVD only reads sanitized companion state for verify / XDA / support reports.
+- ASVD does not depend on the helper and keeps working when the helper is absent.
+- The helper does not trigger ASVD `apply-now.sh` unless explicitly requested with its opt-in flag.
+
+Expected shared-state fields from BT Helper v0.6.1+:
 
 ```text
-/data/adb/asvd/bt-helper.env
+helper_present=1
+helper_package=org.asvd.bttypehelper
+helper_version=0.6.1
+helper_versionCode=61
+target_name=H222
+last_result=PASS
+current_type=Carkit
+method=metadata_api
+asvd_apply_now_triggered=0
 ```
 
-Intended split:
+Optional fields may include `requested_type`, `previous_type`, `last_run`, `last_error`, and sanitized target hints. The shared-state file must not contain a raw Bluetooth MAC address.
 
-- ASVD: safe-volume / Sound Dose handling
-- BT Type Helper: optional Bluetooth device type / Carkit metadata research
-- Shared reporting only; no GMS-disable/offline-ui mode, no direct `bt_config.conf` patching, no boot automation for Bluetooth type changes
+Safety boundaries:
+
+- no Google Play Services manipulation
+- no GMS-disable / offline-ui mode
+- no Bluetooth service reload
+- no direct `/data/misc/bluedroid/bt_config.conf` patching
+- no background daemon
+- no automatic boot-time Bluetooth metadata changes
+- no automatic ASVD apply-now trigger by default
+
+Companion repository:
+
+<https://github.com/Lycidias93/asvd-bt-type-helper>
 
 
 ## Optional ASVD shared state
