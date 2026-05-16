@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.2.7
+
+- Add read-only compatibility probe via `verify.sh --compat`.
+- Add copy-ready XDA/GitHub compatibility report via `verify.sh --compat-xda`.
+- Add sanitized support bundle generation via `verify.sh --support-bundle`.
+- Add config lint mode via `verify.sh --lint-config`.
+- Add companion shared-state age/stale reporting for `/data/adb/asvd/bt-helper.env`.
+- Add ASVD helper shared state from `apply-now.sh` and `active-guard-once.sh` under `/data/adb/asvd/asvd.env`.
+- Improve documentation and issue template for non-Pixel compatibility reports.
+- Runtime audio behavior unchanged from v1.2.6.
+
 ## v1.2.6
 
 - Add optional ASVD BT Type Helper companion detection in full verify, XDA report, compact mode and JSON mode.

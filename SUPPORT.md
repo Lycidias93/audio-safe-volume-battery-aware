@@ -8,7 +8,29 @@ Please include a verify report when opening an issue or replying on XDA.
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
 ```
 
+## Compatibility report for other devices
+
+For Samsung, Xiaomi, LineageOS, KernelSU/APatch or other non-baseline setups, also include:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compat-xda
+```
+
+For deeper troubleshooting, generate a local support bundle:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --support-bundle
+```
+
+Check the generated file before posting it.
+
 ## Also useful
+
+For config troubleshooting, run:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --lint-config
+```
 
 For local troubleshooting, run the full verify:
 

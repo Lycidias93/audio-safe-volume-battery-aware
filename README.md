@@ -6,7 +6,7 @@ The internal Magisk module ID intentionally remains `audio-safe-volume-battery-a
 
 ## Status
 
-- Version: `v1.2.6`
+- Version: `v1.2.7`
 - Verified baseline: Pixel 10 Pro XL on Android 16 / SDK 36
 - Additional verified scenario: active Bluetooth music playback on H222 car receiver after bounded active guard
 - Other Android/OEM ROMs: experimental until verified
@@ -105,7 +105,7 @@ Future BT Device Type Helper research, if any, must use a Bluetooth metadata/API
 Install the ZIP in Magisk:
 
 ```text
-Magisk → Modules → Install from storage → ASVD-v1.2.6.zip → Reboot
+Magisk → Modules → Install from storage → ASVD-v1.2.7.zip → Reboot
 ```
 
 ## Verify after reboot
@@ -129,6 +129,41 @@ RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS
 ```
 
 Advanced/debug modes still exist but are not the primary support path: `--compact`, `--xda-short`, `--json`.
+
+
+## Compatibility probe
+
+For non-Pixel or unverified devices, run the read-only compatibility probe. It does not change Android settings.
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compat
+```
+
+Copy-ready XDA/GitHub compatibility report:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compat-xda
+```
+
+The probe checks Android/OEM identity, root-stack hints, Settings Provider access and safe-volume / Sound Dose related settings keys.
+
+## Support bundle
+
+For troubleshooting, generate a sanitized local report file in Download:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --support-bundle
+```
+
+The bundle includes full verify, XDA report, compatibility probe, config lint and companion state. Do not post it without checking for unrelated private data first.
+
+## Config lint
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --lint-config
+```
+
+This checks `/data/adb/audio-safe-volume-battery-aware.conf` for known keys and sane numeric values.
 
 ## XDA thread
 
@@ -196,3 +231,14 @@ Intended split:
 - ASVD: safe-volume / Sound Dose handling
 - BT Type Helper: optional Bluetooth device type / Carkit metadata research
 - Shared reporting only; no GMS-disable/offline-ui mode, no direct `bt_config.conf` patching, no boot automation for Bluetooth type changes
+
+
+## Optional ASVD shared state
+
+`apply-now.sh` and `active-guard-once.sh` write a small sanitized state file for support diagnostics:
+
+```text
+/data/adb/asvd/asvd.env
+```
+
+This does not create a daemon and does not change boot behavior.

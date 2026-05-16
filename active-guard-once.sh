@@ -8,6 +8,8 @@ MODDIR="${0%/*}"
 MODULE_PROP="$MODDIR/module.prop"
 CONF="/data/adb/audio-safe-volume-battery-aware.conf"
 LOG="$MODDIR/active-guard-once.log"
+SHARED_DIR="/data/adb/asvd"
+ASVD_STATE="$SHARED_DIR/asvd.env"
 
 read_module_prop() {
   key="$1"
@@ -72,6 +74,24 @@ settings_get() {
   /system/bin/settings get global "$1" 2>/dev/null || echo "__ERROR__"
 }
 
+write_asvd_state() {
+  result="$1"
+  mkdir -p "$SHARED_DIR" 2>/dev/null || true
+  tmp="$ASVD_STATE.tmp.$$"
+  {
+    echo "schema_version=1"
+    echo "producer=audio-safe-volume-battery-aware"
+    echo "producer_version=$VERSION"
+    echo "producer_versionCode=$VERSION_CODE"
+    echo "last_helper=active_guard"
+    echo "last_result=$result"
+    echo "last_run=$(now)"
+    echo "passes=$passes"
+    echo "sleep_seconds=$sleep_s"
+  } > "$tmp" 2>/dev/null && mv "$tmp" "$ASVD_STATE" 2>/dev/null || rm -f "$tmp" 2>/dev/null || true
+  chmod 0644 "$ASVD_STATE" 2>/dev/null || true
+}
+
 apply_once() {
   phase="$1"
   /system/bin/settings put global safe_media_volume_enabled "$TARGET_SAFE_MEDIA_VOLUME_ENABLED"
@@ -129,5 +149,6 @@ else
 fi
 
 log "DONE active-guard-once module=$MODID name=$MODNAME version=$VERSION versionCode=$VERSION_CODE"
+write_asvd_state "PASS"
 echo
 echo "RESULT: ASVD_ACTIVE_GUARD_ONCE_DONE"

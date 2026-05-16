@@ -8,6 +8,9 @@ body:
         Please paste the full XDA/GitHub report output:
         `tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda`
 
+        For non-Pixel or unverified devices, also paste:
+        `tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compat-xda`
+
         Do not include unsanitized Bluetooth MAC addresses, account identifiers, tokens, or private keys.
 
   - type: input
@@ -41,6 +44,15 @@ body:
       render: text
     validations:
       required: true
+
+  - type: textarea
+    id: compat
+    attributes:
+      label: verify.sh --compat-xda output
+      description: Required for non-Pixel / unverified devices.
+      render: text
+    validations:
+      required: false
 
   - type: dropdown
     id: playback

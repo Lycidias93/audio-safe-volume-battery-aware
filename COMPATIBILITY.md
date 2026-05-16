@@ -17,12 +17,25 @@ RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS
 | LineageOS / custom ROMs | 14+ | custom | Magisk | unverified | unverified | Needs report |
 | KernelSU / APatch | 14+ | any | KernelSU/APatch | unverified | unverified | Not a baseline yet |
 
-Recommended report command:
+Recommended report commands:
 
 ```sh
 tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compat-xda
 ```
 
 ## BT Type Helper companion
 
 ASVD v1.2.6 can report whether the optional ASVD BT Type Helper companion is installed. Compatibility reports should mention companion status when testing Bluetooth receivers or Carkit metadata behavior.
+
+
+## v1.2.7 compatibility probe
+
+ASVD v1.2.7 adds read-only compatibility reporting for unverified devices:
+
+```sh
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compat
+tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compat-xda
+```
+
+The probe does not write Android settings. It reports safe-volume / Sound Dose related keys, root-stack hints and OEM/device identity to help classify Samsung, Xiaomi, LineageOS, KernelSU/APatch and other reports.

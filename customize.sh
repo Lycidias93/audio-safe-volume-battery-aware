@@ -1,11 +1,11 @@
 #!/system/bin/sh
 # Magisk installation customizer
 
-ui_print "- Audio Safe Volume Disabler v1.2.6"
+ui_print "- Audio Safe Volume Disabler v1.2.7"
 ui_print "- Module ID remains audio-safe-volume-battery-aware for update compatibility"
 ui_print "- Mode: late_start one-shot, no resident daemon"
 ui_print "- Battery aware: idempotent writes, bounded delayed reapply"
-ui_print "- Changed: optional ASVD BT Type Helper companion detection; boot runtime unchanged"
+ui_print "- Changed: compatibility probe, support bundle, config lint and companion state stale detection; boot runtime unchanged"
 ui_print "- Rejected helper path: no GMS-disable/offline-ui mode is shipped"
 ui_print "- Future BT helper direction: metadata/API research only"
 ui_print "- Companion detection: org.asvd.bttypehelper status shown in verify/XDA reports"
@@ -41,5 +41,8 @@ set_perm "$MODPATH/update.json" 0 0 0644
 ui_print "- Installed. Reboot required for Magisk service run."
 ui_print "- Full verify: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh"
 ui_print "- XDA report: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --xda"
+ui_print "- Compat report: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --compat-xda"
+ui_print "- Support bundle: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --support-bundle"
+ui_print "- Config lint: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/verify.sh --lint-config"
 ui_print "- Apply now: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/apply-now.sh"
 ui_print "- Active guard: tsu /system/bin/sh /data/adb/modules/audio-safe-volume-battery-aware/active-guard-once.sh"

@@ -8,9 +8,13 @@ case "${1:-}" in
   --xda) MODE="xda" ;;
   --xda-short) MODE="xda-short" ;;
   --json) MODE="json" ;;
+  --compat) MODE="compat" ;;
+  --compat-xda) MODE="compat-xda" ;;
+  --lint-config) MODE="lint-config" ;;
+  --support-bundle) MODE="support-bundle" ;;
   --help|-h)
-    echo "Usage: verify.sh [--xda|--compact|--xda-short|--json]"
-    echo "Recommended: full verify (no args) or XDA full report (--xda)."
+    echo "Usage: verify.sh [--xda|--compact|--xda-short|--json|--compat|--compat-xda|--lint-config|--support-bundle]"
+      echo "Recommended: full verify (no args), XDA full report (--xda), or compatibility report (--compat-xda)."
     exit 0
     ;;
 esac
@@ -33,6 +37,7 @@ LOW_POWER_REAPPLY_SECONDS="15"
 FINAL_REAPPLY_SECONDS="120"
 LOW_BATTERY_THRESHOLD="15"
 LOG_MAX_BYTES="65536"
+COMPANION_STATE_STALE_SECONDS="86400"
 
 # shellcheck disable=SC1090
 [ -r "$CONF" ] && . "$CONF"
@@ -144,6 +149,126 @@ state_value() {
   /system/bin/grep -m 1 "^$key=" "$BT_HELPER_STATE" 2>/dev/null     | /system/bin/sed "s/^$key=//" 2>/dev/null || true
 }
 
+now_epoch() {
+  /system/bin/date +%s 2>/dev/null || date +%s 2>/dev/null || echo 0
+}
+
+file_mtime_epoch() {
+  f="$1"
+  [ -r "$f" ] || { echo 0; return 0; }
+  /system/bin/stat -c %Y "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0
+}
+
+safe_int() {
+  v="$1"
+  case "$v" in ''|*[!0-9]*) echo 0 ;; *) echo "$v" ;; esac
+}
+
+state_age_seconds() {
+  f="$1"
+  [ -r "$f" ] || { echo unknown; return 0; }
+  now="$(safe_int "$(now_epoch)")"
+  mt="$(safe_int "$(file_mtime_epoch "$f")")"
+  if [ "$now" -gt 0 ] && [ "$mt" -gt 0 ] && [ "$now" -ge "$mt" ]; then
+    echo $((now - mt))
+  else
+    echo unknown
+  fi
+}
+
+state_stale_status() {
+  age="$1"
+  threshold="$(safe_int "$COMPANION_STATE_STALE_SECONDS")"
+  [ "$threshold" -gt 0 ] || threshold=86400
+  case "$age" in ''|unknown|*[!0-9]*) echo unknown ;; *) [ "$age" -gt "$threshold" ] && echo yes || echo no ;; esac
+}
+
+settings_key_status() {
+  ns="$1"
+  key="$2"
+  v="$(/system/bin/settings get "$ns" "$key" 2>/dev/null || echo __ERROR__)"
+  if [ "$v" = "__ERROR__" ]; then
+    echo error
+  elif [ "$v" = "null" ]; then
+    echo absent
+  else
+    echo present
+  fi
+}
+
+settings_search() {
+  ns="$1"
+  /system/bin/settings list "$ns" 2>/dev/null \
+    | /system/bin/grep -Ei 'audio_safe|safe_media|sound.*dose|volume.*safe|hearing|csd' 2>/dev/null \
+    | /system/bin/sed -n '1,80p' || true
+}
+
+root_stack() {
+  out=""
+  if [ "$magisk_v" != "unknown" ] || [ "$magisk_bin" != "unknown" ]; then out="${out}Magisk"; fi
+  for p in /data/adb/ksu/bin/su /data/adb/ksud /debug_ramdisk/ksu/bin/su; do
+    [ -e "$p" ] && out="${out}${out:+,}KernelSU"
+  done
+  for p in /data/adb/ap/bin/su /data/adb/apd /debug_ramdisk/ap/bin/su; do
+    [ -e "$p" ] && out="${out}${out:+,}APatch"
+  done
+  [ -n "$out" ] || out="unknown"
+  echo "$out"
+}
+
+compat_result() {
+  n="$(settings_key_status global audio_safe_csd_next_warning)"
+  e="$(settings_key_status global safe_media_volume_enabled)"
+  s="$(settings_key_status global audio_safe_volume_state)"
+  c="$(settings_key_status global audio_safe_csd_current_value)"
+  r="$(settings_key_status global audio_safe_csd_dose_records)"
+  if [ "$n" = "present" ] && [ "$e" = "present" ] && [ "$s" = "present" ]; then
+    echo probably-compatible
+  elif [ "$n" = "absent" ] && [ "$e" = "absent" ] && [ "$s" = "absent" ] && [ "$c" = "absent" ] && [ "$r" = "absent" ]; then
+    echo unknown-no-keys-present
+  elif [ "$n" = "error" ] || [ "$e" = "error" ] || [ "$s" = "error" ]; then
+    echo unknown-settings-error
+  else
+    echo partial-unknown
+  fi
+}
+
+config_lint() {
+  lint_ok=0
+  echo "== config lint =="
+  echo "config_file=$config_file"
+  if [ ! -r "$CONF" ]; then
+    echo "config_lint=PASS reason=absent_using_defaults"
+    echo "RESULT: ASVD_CONFIG_LINT_PASS"
+    return 0
+  fi
+  allowed='^(DELAYED_REAPPLY_SECONDS|LOW_POWER_REAPPLY_SECONDS|FINAL_REAPPLY_SECONDS|LOW_BATTERY_THRESHOLD|TARGET_SAFE_MEDIA_VOLUME_ENABLED|TARGET_AUDIO_SAFE_VOLUME_STATE|TARGET_AUDIO_SAFE_CSD_NEXT_WARNING|TARGET_AUDIO_SAFE_CSD_CURRENT_VALUE|DELETE_AUDIO_SAFE_CSD_DOSE_RECORDS|LOG_MAX_BYTES|ACTIVE_GUARD_PASSES|ACTIVE_GUARD_SLEEP_SECONDS|ACTIVE_GUARD_MAX_PASSES|ACTIVE_GUARD_MAX_SLEEP_SECONDS|APPLY_NOW_PASSES|APPLY_NOW_SLEEP_SECONDS|COMPANION_STATE_STALE_SECONDS)='
+  /system/bin/grep -n '^[A-Za-z_][A-Za-z0-9_]*=' "$CONF" 2>/dev/null | while IFS= read -r line; do
+    body="${line#*:}"
+    echo "$body" | /system/bin/grep -Eq "$allowed" || echo "WARN unknown_config_key line=$line"
+  done
+  for kv in \
+    "DELAYED_REAPPLY_SECONDS=$DELAYED_REAPPLY_SECONDS" \
+    "LOW_POWER_REAPPLY_SECONDS=$LOW_POWER_REAPPLY_SECONDS" \
+    "FINAL_REAPPLY_SECONDS=$FINAL_REAPPLY_SECONDS" \
+    "LOW_BATTERY_THRESHOLD=$LOW_BATTERY_THRESHOLD" \
+    "LOG_MAX_BYTES=$LOG_MAX_BYTES" \
+    "COMPANION_STATE_STALE_SECONDS=$COMPANION_STATE_STALE_SECONDS"
+  do
+    key="${kv%%=*}"
+    val="${kv#*=}"
+    case "$val" in ''|*[!0-9]*) echo "FAIL numeric_config key=$key value=$val"; lint_ok=1 ;; *) echo "PASS numeric_config key=$key value=$val" ;; esac
+  done
+  case "$TARGET_SAFE_MEDIA_VOLUME_ENABLED" in 0|1) echo "PASS target_safe_media_volume_enabled=$TARGET_SAFE_MEDIA_VOLUME_ENABLED" ;; *) echo "FAIL target_safe_media_volume_enabled=$TARGET_SAFE_MEDIA_VOLUME_ENABLED"; lint_ok=1 ;; esac
+  case "$DELETE_AUDIO_SAFE_CSD_DOSE_RECORDS" in 0|1) echo "PASS delete_audio_safe_csd_dose_records=$DELETE_AUDIO_SAFE_CSD_DOSE_RECORDS" ;; *) echo "FAIL delete_audio_safe_csd_dose_records=$DELETE_AUDIO_SAFE_CSD_DOSE_RECORDS"; lint_ok=1 ;; esac
+  if [ "$lint_ok" -eq 0 ]; then
+    echo "RESULT: ASVD_CONFIG_LINT_PASS"
+    return 0
+  fi
+  echo "RESULT: ASVD_CONFIG_LINT_FAIL"
+  return 1
+}
+
 log_status() {
   if [ -r "$LOG" ] && /system/bin/grep -q "DONE module=audio-safe-volume-battery-aware" "$LOG" 2>/dev/null; then
     echo PASS
@@ -203,6 +328,10 @@ bt_helper_last_run="$(state_value last_run)"
 [ -n "$bt_helper_requested_type" ] || bt_helper_requested_type="unknown"
 [ -n "$bt_helper_last_result" ] || bt_helper_last_result="unknown"
 [ -n "$bt_helper_last_run" ] || bt_helper_last_run="unknown"
+bt_helper_state_age_seconds="$(state_age_seconds "$BT_HELPER_STATE")"
+bt_helper_state_stale="$(state_stale_status "$bt_helper_state_age_seconds")"
+root_stack_value="$(root_stack)"
+compat_probe_result="$(compat_result)"
 
 v_next="$(settings_get audio_safe_csd_next_warning)"
 v_enabled="$(settings_get safe_media_volume_enabled)"
@@ -217,12 +346,86 @@ check_file_quiet "$MODDIR/verify.sh" || ok=1
 [ -x "$service_sh" ] || ok=1
 values_status || ok=1
 
+if [ "$MODE" = "lint-config" ]; then
+  config_lint
+  exit $?
+fi
+
+if [ "$MODE" = "compat" ] || [ "$MODE" = "compat-xda" ]; then
+  [ "$MODE" = "compat-xda" ] && echo "[CODE]"
+  echo "== compatibility probe =="
+  echo "module=$module_name $version ($version_code)"
+  echo "android_release=$android_release"
+  echo "android_sdk=$android_sdk"
+  echo "manufacturer=$manufacturer"
+  echo "device=$device"
+  echo "model=$model"
+  echo "root_stack=$root_stack_value"
+  echo "magisk=$magisk_v ($magisk_vc)"
+  echo "settings_provider_ready=$([ "$(settings_key_status global safe_media_volume_enabled)" != "error" ] && echo yes || echo no)"
+  echo "write_test_performed=no"
+  echo "global.audio_safe_csd_next_warning=$(settings_key_status global audio_safe_csd_next_warning)"
+  echo "global.safe_media_volume_enabled=$(settings_key_status global safe_media_volume_enabled)"
+  echo "global.audio_safe_volume_state=$(settings_key_status global audio_safe_volume_state)"
+  echo "global.audio_safe_csd_current_value=$(settings_key_status global audio_safe_csd_current_value)"
+  echo "global.audio_safe_csd_dose_records=$(settings_key_status global audio_safe_csd_dose_records)"
+  echo "compat_result=$compat_probe_result"
+  echo
+  echo "== discovered related settings: global =="
+  settings_search global
+  echo
+  echo "== discovered related settings: secure =="
+  settings_search secure
+  echo
+  echo "== discovered related settings: system =="
+  settings_search system
+  echo
+  if [ "$MODE" = "compat-xda" ]; then
+    echo "RESULT: ASVD_COMPAT_REPORT_DONE"
+    echo "[/CODE]"
+  else
+    echo "RESULT: ASVD_COMPAT_PROBE_DONE"
+  fi
+  exit 0
+fi
+
+if [ "$MODE" = "support-bundle" ]; then
+  out="/storage/emulated/0/Download/ASVD-support-report-$(/system/bin/date +%Y%m%d-%H%M%S 2>/dev/null || date +%Y%m%d-%H%M%S).txt"
+  {
+    echo "# ASVD support bundle"
+    echo "generated=$(/system/bin/date '+%Y-%m-%dT%H:%M:%S%z' 2>/dev/null || date)"
+    echo
+    echo "## full verify"
+    /system/bin/sh "$0" || true
+    echo
+    echo "## xda report"
+    /system/bin/sh "$0" --xda || true
+    echo
+    echo "## compatibility probe"
+    /system/bin/sh "$0" --compat || true
+    echo
+    echo "## config lint"
+    /system/bin/sh "$0" --lint-config || true
+    echo
+    echo "## companion state"
+    if [ -r "$BT_HELPER_STATE" ]; then
+      /system/bin/sed -E 's/([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}/<BT_MAC>/g' "$BT_HELPER_STATE" 2>/dev/null || true
+    else
+      echo "bt_helper_state_file=absent"
+    fi
+  } > "$out" 2>&1
+  /system/bin/chmod 0644 "$out" 2>/dev/null || true
+  echo "support_bundle=$out"
+  echo "RESULT: ASVD_SUPPORT_BUNDLE_DONE"
+  exit 0
+fi
+
 if [ "$MODE" = "compact" ]; then
   echo "ASVD $version"
   echo "device=$model"
   echo "android=$android_release sdk=$android_sdk"
   echo "magisk=$magisk_v ($magisk_vc)"
-  echo "bt_helper=$bt_helper_status version=$bt_helper_version state=$bt_helper_state_file"
+  echo "bt_helper=$bt_helper_status version=$bt_helper_version state=$bt_helper_state_file stale=$bt_helper_state_stale"
   echo "config=$config_file"
   if values_status; then echo "values=PASS"; else echo "values=FAIL"; fi
   echo "service_log=$service_log"
@@ -281,6 +484,10 @@ if [ "$MODE" = "json" ]; then
   "bt_helper_requested_type": "$(json_escape "$bt_helper_requested_type")",
   "bt_helper_last_result": "$(json_escape "$bt_helper_last_result")",
   "bt_helper_last_run": "$(json_escape "$bt_helper_last_run")",
+  "bt_helper_state_age_seconds": "$(json_escape "$bt_helper_state_age_seconds")",
+  "bt_helper_state_stale": "$(json_escape "$bt_helper_state_stale")",
+  "root_stack": "$(json_escape "$root_stack_value")",
+  "compat_result": "$(json_escape "$compat_probe_result")",
   "result": "$(json_escape "$result")"
 }
 EOF
@@ -307,6 +514,8 @@ if [ "$MODE" = "xda" ]; then
   echo "  Requested type: $bt_helper_requested_type"
   echo "  Last result: $bt_helper_last_result"
   echo "  Last run: $bt_helper_last_run"
+  echo "  State age seconds: $bt_helper_state_age_seconds"
+  echo "  State stale: $bt_helper_state_stale"
   echo "Values:"
   echo "  audio_safe_csd_next_warning = $v_next"
   echo "  safe_media_volume_enabled   = $v_enabled"
@@ -386,6 +595,12 @@ printf 'bt_helper_last_result = %s
 ' "$bt_helper_last_result"
 printf 'bt_helper_last_run = %s
 ' "$bt_helper_last_run"
+printf 'bt_helper_state_age_seconds = %s
+' "$bt_helper_state_age_seconds"
+printf 'bt_helper_state_stale = %s
+' "$bt_helper_state_stale"
+printf 'compat_result = %s
+' "$compat_probe_result"
 
 echo
 check_file module.prop "$module_prop" || ok=1
