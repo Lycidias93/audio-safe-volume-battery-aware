@@ -1,3 +1,7 @@
+<!-- telegram-release-channel:start -->
+> Release updates: [@lycidias93](https://t.me/lycidias93)
+<!-- telegram-release-channel:end -->
+
 # Audio Safe Volume Disabler
 
 <!-- ASVD_INTRO_START -->
