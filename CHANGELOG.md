@@ -2,6 +2,8 @@
 
 ## v1.2.9
 
+- Post-release metadata fix: `update.json` changelog now points to raw release notes so Magisk does not render GitHub HTML theme metadata in the update dialog.
+
 - Hotfix release for stale Magisk installer text in `customize.sh`.
 - Installer UI now prints `Audio Safe Volume Disabler v1.2.9`.
 - Fixed release-publish preflight workflow to verify SHA files from the asset directory instead of the repository directory.
