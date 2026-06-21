@@ -1,7 +1,7 @@
 #!/system/bin/sh
 # Magisk installation customizer
 
-ui_print "- Audio Safe Volume Disabler v1.2.7"
+ui_print "- Audio Safe Volume Disabler v1.2.9"
 ui_print "- Module ID remains audio-safe-volume-battery-aware for update compatibility"
 ui_print "- Mode: late_start one-shot, no resident daemon"
 ui_print "- Battery aware: idempotent writes, bounded delayed reapply"

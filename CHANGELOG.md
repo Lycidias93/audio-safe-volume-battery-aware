@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.9
+
+- Hotfix release for stale Magisk installer text in `customize.sh`.
+- Installer UI now prints `Audio Safe Volume Disabler v1.2.9`.
+- Fixed release-publish preflight workflow to verify SHA files from the asset directory instead of the repository directory.
+- Runtime audio behavior unchanged from v1.2.8.
+
 ## v1.2.8
 
 - Mark Pixel Android 17 / SDK 37 as verified after post-upgrade PASS on Pixel 10 Pro XL.
