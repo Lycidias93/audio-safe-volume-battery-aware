@@ -27,8 +27,8 @@ The internal Magisk module ID intentionally remains `audio-safe-volume-battery-a
 
 | Area | Status |
 |---|---|
-| Current stable release | `v1.2.8` |
-| Version / versionCode | `v1.2.8` / `128` |
+| Current stable release | `v1.2.9` |
+| Version / versionCode | `v1.2.9` / `129` |
 | Runtime model | Magisk `late_start service` |
 | Boot behavior | one-shot apply + bounded delayed reapply |
 | Battery behavior | no default loop, no wakelock, no network |
