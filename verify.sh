@@ -5,6 +5,7 @@ set -u
 MODE="full"
 case "${1:-}" in
   --compact) MODE="compact" ;;
+  --markers) MODE="markers" ;;
   --xda) MODE="xda" ;;
   --xda-short) MODE="xda-short" ;;
   --json) MODE="json" ;;
@@ -13,8 +14,8 @@ case "${1:-}" in
   --lint-config) MODE="lint-config" ;;
   --support-bundle) MODE="support-bundle" ;;
   --help|-h)
-    echo "Usage: verify.sh [--xda|--compact|--xda-short|--json|--compat|--compat-xda|--lint-config|--support-bundle]"
-      echo "Recommended: full verify (no args), XDA full report (--xda), or compatibility report (--compat-xda)."
+    echo "Usage: verify.sh [--markers|--xda|--compact|--xda-short|--json|--compat|--compat-xda|--lint-config|--support-bundle]"
+    echo "Recommended: marker verify (--markers), full verify (no args), XDA full report (--xda), or bounded compatibility report (--compat-xda)."
     exit 0
     ;;
 esac
@@ -38,6 +39,8 @@ FINAL_REAPPLY_SECONDS="120"
 LOW_BATTERY_THRESHOLD="15"
 LOG_MAX_BYTES="65536"
 COMPANION_STATE_STALE_SECONDS="86400"
+REPORT_MAX_VALUE_CHARS="240"
+REPORT_LOG_TAIL_LINES="12"
 
 # shellcheck disable=SC1090
 [ -r "$CONF" ] && . "$CONF"
@@ -196,11 +199,47 @@ settings_key_status() {
   fi
 }
 
+value_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    printf '%s' "$1" | sha256sum 2>/dev/null | /system/bin/sed 's/[[:space:]].*//' 2>/dev/null || echo unknown
+  elif [ -x /system/bin/sha256sum ]; then
+    printf '%s' "$1" | /system/bin/sha256sum 2>/dev/null | /system/bin/sed 's/[[:space:]].*//' 2>/dev/null || echo unknown
+  else
+    printf '%s' "$1" | /system/bin/cksum 2>/dev/null | /system/bin/sed 's/[[:space:]].*//' 2>/dev/null || echo unknown
+  fi
+}
+
+bounded_value() {
+  v="$1"
+  max="$(safe_int "${REPORT_MAX_VALUE_CHARS:-240}")"
+  [ "$max" -gt 0 ] || max=240
+  len="$(printf '%s' "$v" | /system/bin/wc -c 2>/dev/null | /system/bin/tr -d ' ' 2>/dev/null || echo 0)"
+  len="$(safe_int "$len")"
+  if [ "$len" -le "$max" ]; then
+    printf '%s' "$v"
+    return 0
+  fi
+  preview="$(printf '%s' "$v" | /system/bin/cut -c 1-"$max" 2>/dev/null || true)"
+  hash="$(value_sha256 "$v")"
+  printf '<omitted chars=%s sha256=%s preview=%s...>' "$len" "$hash" "$preview"
+}
+
+settings_key_interesting() {
+  key="$1"
+  echo "$key" | /system/bin/grep -Eiq 'audio_safe|safe_media|sound.*dose|volume.*safe|(^|_)csd($|_)|^hearing(_|$)|hearing_aid' 2>/dev/null
+}
+
 settings_search() {
   ns="$1"
-  /system/bin/settings list "$ns" 2>/dev/null \
-    | /system/bin/grep -Ei 'audio_safe|safe_media|sound.*dose|volume.*safe|hearing|csd' 2>/dev/null \
-    | /system/bin/sed -n '1,80p' || true
+  /system/bin/settings list "$ns" 2>/dev/null | while IFS= read -r line; do
+    key="${line%%=*}"
+    val="${line#*=}"
+    settings_key_interesting "$key" || continue
+    printf '%s=' "$key"
+    bounded_value "$val"
+    printf '
+'
+  done | /system/bin/sed -n '1,40p' || true
 }
 
 root_stack() {
@@ -242,7 +281,7 @@ config_lint() {
     echo "RESULT: ASVD_CONFIG_LINT_PASS"
     return 0
   fi
-  allowed='^(DELAYED_REAPPLY_SECONDS|LOW_POWER_REAPPLY_SECONDS|FINAL_REAPPLY_SECONDS|LOW_BATTERY_THRESHOLD|TARGET_SAFE_MEDIA_VOLUME_ENABLED|TARGET_AUDIO_SAFE_VOLUME_STATE|TARGET_AUDIO_SAFE_CSD_NEXT_WARNING|TARGET_AUDIO_SAFE_CSD_CURRENT_VALUE|DELETE_AUDIO_SAFE_CSD_DOSE_RECORDS|LOG_MAX_BYTES|ACTIVE_GUARD_PASSES|ACTIVE_GUARD_SLEEP_SECONDS|ACTIVE_GUARD_MAX_PASSES|ACTIVE_GUARD_MAX_SLEEP_SECONDS|APPLY_NOW_PASSES|APPLY_NOW_SLEEP_SECONDS|COMPANION_STATE_STALE_SECONDS)='
+  allowed='^(DELAYED_REAPPLY_SECONDS|LOW_POWER_REAPPLY_SECONDS|FINAL_REAPPLY_SECONDS|LOW_BATTERY_THRESHOLD|TARGET_SAFE_MEDIA_VOLUME_ENABLED|TARGET_AUDIO_SAFE_VOLUME_STATE|TARGET_AUDIO_SAFE_CSD_NEXT_WARNING|TARGET_AUDIO_SAFE_CSD_CURRENT_VALUE|DELETE_AUDIO_SAFE_CSD_DOSE_RECORDS|LOG_MAX_BYTES|ACTIVE_GUARD_PASSES|ACTIVE_GUARD_SLEEP_SECONDS|ACTIVE_GUARD_MAX_PASSES|ACTIVE_GUARD_MAX_SLEEP_SECONDS|APPLY_NOW_PASSES|APPLY_NOW_SLEEP_SECONDS|COMPANION_STATE_STALE_SECONDS|REPORT_MAX_VALUE_CHARS|REPORT_LOG_TAIL_LINES)='
   /system/bin/grep -n '^[A-Za-z_][A-Za-z0-9_]*=' "$CONF" 2>/dev/null | while IFS= read -r line; do
     body="${line#*:}"
     echo "$body" | /system/bin/grep -Eq "$allowed" || echo "WARN unknown_config_key line=$line"
@@ -320,12 +359,14 @@ bt_helper_state_package="$(state_value package)"
 bt_helper_state_version="$(state_value helper_version)"
 bt_helper_target_name="$(state_value target_name)"
 bt_helper_requested_type="$(state_value requested_type)"
+bt_helper_current_type="$(state_value current_type)"
 bt_helper_last_result="$(state_value last_result)"
 bt_helper_last_run="$(state_value last_run)"
 [ -n "$bt_helper_state_package" ] || bt_helper_state_package="unknown"
 [ -n "$bt_helper_state_version" ] || bt_helper_state_version="unknown"
 [ -n "$bt_helper_target_name" ] || bt_helper_target_name="unknown"
 [ -n "$bt_helper_requested_type" ] || bt_helper_requested_type="unknown"
+[ -n "$bt_helper_current_type" ] || bt_helper_current_type="unknown"
 [ -n "$bt_helper_last_result" ] || bt_helper_last_result="unknown"
 [ -n "$bt_helper_last_run" ] || bt_helper_last_run="unknown"
 bt_helper_state_age_seconds="$(state_age_seconds "$BT_HELPER_STATE")"
@@ -390,7 +431,10 @@ if [ "$MODE" = "compat" ] || [ "$MODE" = "compat-xda" ]; then
 fi
 
 if [ "$MODE" = "support-bundle" ]; then
-  out="/storage/emulated/0/Download/ASVD-support-report-$(/system/bin/date +%Y%m%d-%H%M%S 2>/dev/null || date +%Y%m%d-%H%M%S).txt"
+  stamp="$(/system/bin/date +%Y%m%d-%H%M%S 2>/dev/null || date +%Y%m%d-%H%M%S)"
+  out_dir="/storage/emulated/0/Download"
+  [ -d "$out_dir" ] && [ -w "$out_dir" ] || out_dir="/data/local/tmp"
+  out="$out_dir/ASVD-support-report-$stamp.txt"
   {
     echo "# ASVD support bundle"
     echo "generated=$(/system/bin/date '+%Y-%m-%dT%H:%M:%S%z' 2>/dev/null || date)"
@@ -421,11 +465,40 @@ if [ "$MODE" = "support-bundle" ]; then
 fi
 
 if [ "$MODE" = "compact" ]; then
+if [ "$MODE" = "markers" ]; then
+  echo "Module: $module_name $version ($version_code)"
+  echo "Device: $manufacturer $model ($device)"
+  echo "Android: $android_release / SDK $android_sdk"
+  echo "Magisk: $magisk_v ($magisk_vc)"
+  echo "Compat: $compat_probe_result"
+  echo "Companion: $bt_helper_status version=$bt_helper_version ($bt_helper_version_code) current_type=$bt_helper_current_type state=$bt_helper_state_file stale=$bt_helper_state_stale"
+  [ "$v_next" = "$TARGET_AUDIO_SAFE_CSD_NEXT_WARNING" ] && st_next=PASS || st_next=FAIL
+  [ "$v_enabled" = "$TARGET_SAFE_MEDIA_VOLUME_ENABLED" ] && st_enabled=PASS || st_enabled=FAIL
+  [ "$v_state" = "$TARGET_AUDIO_SAFE_VOLUME_STATE" ] && st_state=PASS || st_state=FAIL
+  [ "$v_current" = "$TARGET_AUDIO_SAFE_CSD_CURRENT_VALUE" ] && st_current=PASS || st_current=FAIL
+  if [ "$DELETE_AUDIO_SAFE_CSD_DOSE_RECORDS" = "1" ]; then
+    { [ "$v_records" = "null" ] || [ "$v_records" = "__ERROR__" ]; } && st_records=PASS || st_records=FAIL
+  else
+    st_records=SKIP
+  fi
+  echo "audio_safe_csd_next_warning=$v_next expected=$TARGET_AUDIO_SAFE_CSD_NEXT_WARNING status=$st_next"
+  echo "safe_media_volume_enabled=$v_enabled expected=$TARGET_SAFE_MEDIA_VOLUME_ENABLED status=$st_enabled"
+  echo "audio_safe_volume_state=$v_state expected=$TARGET_AUDIO_SAFE_VOLUME_STATE status=$st_state"
+  echo "audio_safe_csd_current_value=$v_current expected=$TARGET_AUDIO_SAFE_CSD_CURRENT_VALUE status=$st_current"
+  echo "audio_safe_csd_dose_records=$v_records expected=null status=$st_records"
+  if [ "$ok" -eq 0 ]; then
+    echo "RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS"
+    exit 0
+  fi
+  echo "RESULT: AUDIO_SAFE_VOLUME_VERIFY_FAIL"
+  exit 1
+fi
+
   echo "ASVD $version"
   echo "device=$model"
   echo "android=$android_release sdk=$android_sdk"
   echo "magisk=$magisk_v ($magisk_vc)"
-  echo "bt_helper=$bt_helper_status version=$bt_helper_version state=$bt_helper_state_file stale=$bt_helper_state_stale"
+  echo "bt_helper=$bt_helper_status version=$bt_helper_version state=$bt_helper_state_file current_type=$bt_helper_current_type stale=$bt_helper_state_stale"
   echo "config=$config_file"
   if values_status; then echo "values=PASS"; else echo "values=FAIL"; fi
   echo "service_log=$service_log"
@@ -443,7 +516,7 @@ if [ "$MODE" = "xda-short" ]; then
   echo "Device: $manufacturer $model ($device)"
   echo "Android: $android_release / SDK $android_sdk"
   echo "Magisk: $magisk_v ($magisk_vc)"
-  echo "Companion: ASVD BT Type Helper $bt_helper_status version=$bt_helper_version state=$bt_helper_state_file"
+  echo "Companion: ASVD BT Type Helper $bt_helper_status version=$bt_helper_version state=$bt_helper_state_file current_type=$bt_helper_current_type"
   echo "Config: $config_file"
   if values_status; then echo "Values: PASS"; else echo "Values: FAIL"; fi
   echo "Service log: $service_log"
@@ -482,6 +555,7 @@ if [ "$MODE" = "json" ]; then
   "bt_helper_state_file": "$(json_escape "$bt_helper_state_file")",
   "bt_helper_target_name": "$(json_escape "$bt_helper_target_name")",
   "bt_helper_requested_type": "$(json_escape "$bt_helper_requested_type")",
+  "bt_helper_current_type": "$(json_escape "$bt_helper_current_type")",
   "bt_helper_last_result": "$(json_escape "$bt_helper_last_result")",
   "bt_helper_last_run": "$(json_escape "$bt_helper_last_run")",
   "bt_helper_state_age_seconds": "$(json_escape "$bt_helper_state_age_seconds")",
@@ -511,7 +585,8 @@ if [ "$MODE" = "xda" ]; then
   echo "  Package version: $bt_helper_version ($bt_helper_version_code)"
   echo "  State file: $bt_helper_state_file ($BT_HELPER_STATE)"
   echo "  State target: $bt_helper_target_name"
-  echo "  Requested type: $bt_helper_requested_type"
+  echo "  Current type: $bt_helper_current_type"
+  echo "  Last requested type: $bt_helper_requested_type"
   echo "  Last result: $bt_helper_last_result"
   echo "  Last run: $bt_helper_last_run"
   echo "  State age seconds: $bt_helper_state_age_seconds"
@@ -525,7 +600,7 @@ if [ "$MODE" = "xda" ]; then
   echo "Service log: $service_log"
   if [ -r "$LOG" ]; then
     echo "Log tail:"
-    /system/bin/tail -n 30 "$LOG" 2>/dev/null || true
+    /system/bin/tail -n "$(safe_int "${REPORT_LOG_TAIL_LINES:-12}")" "$LOG" 2>/dev/null || true
   fi
   if [ "$ok" -eq 0 ]; then
     echo "RESULT: AUDIO_SAFE_VOLUME_VERIFY_PASS"

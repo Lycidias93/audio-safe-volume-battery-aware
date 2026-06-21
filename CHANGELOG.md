@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.2.8
+
+- Mark Pixel Android 17 / SDK 37 as verified after post-upgrade PASS on Pixel 10 Pro XL.
+- Add `verify.sh --markers` for bounded copy-window verification output.
+- Harden `verify.sh --compat` and `verify.sh --compat-xda` against huge Android settings values.
+- Filter compatibility discovery by key name instead of matching noisy values such as Pixel Tips lists.
+- Bound long report values with character count, hash and short preview.
+- Reduce XDA service-log tail output to avoid terminal flooding.
+- Report BT Helper `current_type` separately from last requested type when shared state is present.
+- Add support-bundle output directory fallback to `/data/local/tmp` when Download is not writable.
+- Runtime audio behavior unchanged from v1.2.7.
+
 ## v1.2.7
 
 - Add read-only compatibility probe via `verify.sh --compat`.

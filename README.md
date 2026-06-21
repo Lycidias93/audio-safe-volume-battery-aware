@@ -27,12 +27,12 @@ The internal Magisk module ID intentionally remains `audio-safe-volume-battery-a
 
 | Area | Status |
 |---|---|
-| Current stable release | `v1.2.7` |
-| Version / versionCode | `v1.2.7` / `127` |
+| Current stable release | `v1.2.8` |
+| Version / versionCode | `v1.2.8` / `128` |
 | Runtime model | Magisk `late_start service` |
 | Boot behavior | one-shot apply + bounded delayed reapply |
 | Battery behavior | no default loop, no wakelock, no network |
-| Verified phone | Pixel 10 Pro XL / Android 16 / SDK 36 |
+| Verified phone | Pixel 10 Pro XL / Android 16/17 / SDK 36/37 |
 | Verified baseline | boot verify PASS |
 | Verified Bluetooth scenario | H222 / Skoda BT2MP3 receiver after active guard |
 | Optional companion | ASVD BT Type Helper `v0.6.1` / `61` |
